@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard SIREV Primaria - Datos procesados</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="dashboard_data.js"></script>
+<style>
+:root{
+  --bg:#08101f;--panel:#111b2f;--panel2:#17233b;--panel3:#1f2d4a;--border:#2d3c5f;
+  --text:#f3f7ff;--muted:#9fb0d0;--soft:#c8d7f4;--blue:#3b82f6;--red:#ef4444;
+  --amber:#f59e0b;--green:#22c55e;--cyan:#06b6d4;--purple:#8b5cf6;--radius:18px;
+}
+*{box-sizing:border-box} 
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at top left,rgba(59,130,246,.12),transparent 32rem),var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0b1324}::-webkit-scrollbar-thumb{background:#314467;border-radius:999px}::-webkit-scrollbar-thumb:hover{background:#3f5681}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,rgba(9,16,31,.98),rgba(18,30,54,.96));border-bottom:1px solid rgba(96,124,181,.35);padding:16px 24px;display:flex;justify-content:space-between;gap:20px;align-items:center;box-shadow:0 12px 28px rgba(0,0,0,.18);backdrop-filter:blur(10px)}
+.top-filters{display:grid;grid-template-columns:repeat(2,minmax(190px,1fr));align-items:end;gap:10px 12px;justify-content:flex-end;min-width:410px;max-width:560px}.top-filter{display:flex;flex-direction:column;gap:5px;min-width:0}.top-filter label{margin:0;font-size:10px;letter-spacing:.08em;color:#b9ccff}.top-filter select{margin:0;padding:9px 34px 9px 11px;border-radius:999px;background:#111b31;border-color:rgba(102,130,188,.42);box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}.top-filter select:focus{box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+h1{font-size:22px;margin:0 0 5px;font-weight:850;letter-spacing:-.025em;line-height:1.15}.sub{color:#b8c8ea;font-size:13px}.badges{display:none}.badge{display:none}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 76px)}
+aside{border-right:1px solid rgba(96,124,181,.28);background:linear-gradient(180deg,#111b2f,#0d1628);padding:18px 14px;position:sticky;top:76px;height:calc(100vh - 76px);overflow:auto;box-shadow:8px 0 24px rgba(0,0,0,.12)}
+main{padding:22px;min-width:0;max-width:1680px;width:100%;margin:0 auto}
+label{font-size:11px;text-transform:uppercase;color:#b9ccff;font-weight:800;letter-spacing:.055em;margin-top:13px;display:block}
+select,input{width:100%;background:#0b1324;color:var(--text);border:1px solid rgba(102,130,188,.38);border-radius:12px;padding:10px 11px;margin-top:6px;transition:border-color .15s,box-shadow .15s,background .15s;outline:none}
+select:focus,input:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.14);background:#0e1729}
+button{background:var(--blue);color:white;border:0;border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer;transition:transform .12s,filter .12s,background .12s}button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+button.secondary{background:#182541;border:1px solid rgba(102,130,188,.38);color:#dbe8ff}.buttons{display:grid;grid-template-columns:1fr;gap:9px;margin-top:16px}.notice,.warn{display:none}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;position:sticky;top:76px;z-index:12;padding:8px 0;background:linear-gradient(180deg,rgba(8,16,31,.98),rgba(8,16,31,.86));backdrop-filter:blur(6px)}
+.tab{background:#17233b;border:1px solid rgba(102,130,188,.34);color:#b9c9e8;border-radius:13px;padding:10px 16px;box-shadow:0 8px 16px rgba(0,0,0,.12)}.tab.active{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border-color:#60a5fa;box-shadow:0 12px 24px rgba(59,130,246,.26)}.pane{display:none}.pane.active{display:block}
+/* Summary layout: cobertura + distribución institucional */
+.cards{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;align-items:stretch}
+.summary-block{background:linear-gradient(145deg,rgba(18,28,50,.98),rgba(12,21,39,.98));border:1px solid rgba(117,148,211,.30);border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+.summary-block h3{font-size:15px;margin:0;padding:13px 16px;background:linear-gradient(90deg,#1e2b48,#17233b);border-bottom:1px solid rgba(117,148,211,.24);font-weight:850;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.summary-block h3:before{content:'●';font-size:10px;color:var(--cyan);filter:drop-shadow(0 0 8px var(--cyan))}
+.coverage-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:14px}
+.coverage-card{position:relative;background:linear-gradient(145deg,#0e1930,#101b31);border:1px solid rgba(117,148,211,.26);border-radius:16px;padding:14px 16px;min-height:92px;overflow:hidden}
+.coverage-card:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}
+.coverage-card.context:before{background:var(--purple)}
+.coverage-card small{display:block;color:#b9ccff;text-transform:uppercase;letter-spacing:.045em;font-size:11px;font-weight:850;margin-bottom:7px}
+.coverage-card .val{font-size:28px;line-height:1.05;font-weight:900;letter-spacing:-.035em;color:#fff;text-shadow:0 2px 0 rgba(37,99,235,.34)}
+.coverage-card .det{font-size:12px;color:#b8c8ea;margin-top:7px}
+.donut-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.summary-donut{background:linear-gradient(145deg,rgba(18,28,50,.98),rgba(12,21,39,.98));border:1px solid rgba(117,148,211,.30);border-radius:18px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+.summary-donut h3{font-size:15px;margin:0;padding:14px 16px;background:linear-gradient(90deg,#1e2b48,#17233b);border-bottom:1px solid rgba(117,148,211,.24);font-weight:850;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.summary-donut h3:before{content:'●';font-size:10px;color:var(--cyan);filter:drop-shadow(0 0 8px var(--cyan))}
+.summary-donut .body{padding:14px 16px 10px}
+.summary-note{padding:0 16px 14px;color:#9fb1d8;font-size:12px}
+@media(max-width:1180px){.coverage-row{grid-template-columns:repeat(3,minmax(0,1fr))}.donut-row{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.coverage-row,.donut-row{grid-template-columns:1fr}.coverage-card .val{font-size:24px}}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.section{background:linear-gradient(145deg,rgba(18,28,50,.98),rgba(12,21,39,.98));border:1px solid rgba(117,148,211,.30);border-radius:18px;margin-bottom:16px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.18)}.section h2{font-size:16px;margin:0;padding:14px 16px;background:linear-gradient(90deg,#1e2b48,#17233b);border-bottom:1px solid rgba(117,148,211,.24);font-weight:850;letter-spacing:-.01em}.body{padding:16px}canvas{max-width:100%;height:260px!important}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 10px;border-bottom:1px solid rgba(42,53,83,.9);text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#22304f;color:#b9ccff;cursor:pointer;text-transform:uppercase;font-size:11px;z-index:1;letter-spacing:.04em}tr:hover td{background:#16223a}.tablewrap{max-height:520px;overflow:auto}.right{text-align:right}.red{color:var(--red)}.amber{color:var(--amber)}.green{color:var(--green)}.cyan{color:var(--cyan)}
+/* Brechas / ranking */
+#brechas{display:none}#brechas.active{display:block}.brechas-grid{display:grid;grid-template-columns:1fr;gap:18px}.rank-section{background:linear-gradient(145deg,rgba(18,26,46,.98),rgba(12,20,38,.98));border:1px solid rgba(91,119,178,.34);border-radius:18px;overflow:hidden;box-shadow:0 16px 34px rgba(0,0,0,.22)}.rank-section h2{background:linear-gradient(90deg,#1f2d4b,#17223b);border-bottom:1px solid rgba(91,119,178,.32);padding:14px 16px;font-size:15px;display:flex;align-items:center;gap:10px}.rank-section h2:before{content:'●';font-size:10px;color:var(--cyan);filter:drop-shadow(0 0 8px var(--cyan))}.rank-section .body{padding:0}.rank-section .tablewrap{max-height:520px;overflow:auto}.rank-table{border-collapse:separate;border-spacing:0 8px;padding:10px 12px;background:#0c1324}.rank-table thead th{background:#22304f;color:#b9ccff;border-bottom:0;padding:11px 12px;font-size:11px;letter-spacing:.045em}.rank-table thead th:first-child{border-radius:12px 0 0 12px}.rank-table thead th:last-child{border-radius:0 12px 12px 0}.rank-table tbody tr{background:#111b31;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .12s ease,background .12s ease,box-shadow .12s ease}.rank-table tbody tr:hover{background:#172543;transform:translateY(-1px);box-shadow:0 9px 24px rgba(0,0,0,.28)}.rank-table tbody td{border-bottom:0;padding:12px 12px;vertical-align:middle}.rank-table tbody td:first-child{border-radius:14px 0 0 14px}.rank-table tbody td:last-child{border-radius:0 14px 14px 0}.rank-name{display:flex;align-items:center;gap:10px;min-width:260px}.rank-index{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:#20304f;color:#bfdbfe;font-weight:850;font-size:12px;flex:0 0 auto}.rank-label{font-weight:760;color:#f8fbff;white-space:normal;line-height:1.25}.rank-sub{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-weight:500}.rank-eval{font-weight:850;color:#dbeafe;font-size:13px}.rank-pill{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;width:100%;min-width:150px}.rank-pct{font-weight:850;font-variant-numeric:tabular-nums}.rank-bar{width:72px;height:7px;border-radius:999px;background:#263656;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}.rank-fill{height:100%;border-radius:999px}.rank-fill.red{background:var(--red)}.rank-fill.amber{background:var(--amber)}.rank-fill.green{background:var(--green)}.rank-status{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;min-width:86px}.rank-status.high{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.28)}.rank-status.mid{background:rgba(245,158,11,.14);color:#fcd34d;border:1px solid rgba(245,158,11,.28)}.rank-status.low{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.28)}
+/* Matriz jerárquica */
+.matrix-shell{--mx-cols:minmax(420px,1.7fr) repeat(4,minmax(130px,.65fr));border:1px solid var(--border);border-radius:16px;overflow:auto;background:#0f172a;box-shadow:0 14px 28px rgba(0,0,0,.18)}.matrix-shell.matrix-read{--mx-cols:minmax(420px,1.6fr) repeat(6,minmax(130px,.6fr))}.matrix-row{display:grid;grid-template-columns:var(--mx-cols);align-items:stretch;min-width:max-content;border-bottom:1px solid rgba(42,53,83,.85)}.matrix-row>div{padding:10px 12px;display:flex;align-items:center;gap:8px;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:1px solid rgba(42,53,83,.55)}.matrix-row>div:first-child{border-left:0}.matrix-head{position:sticky;top:0;z-index:3;background:#22304f;color:#b9ccff;font-size:11px;text-transform:uppercase;font-weight:850;letter-spacing:.03em}.matrix-head>div{min-height:48px;align-items:center}.mx{border:0;margin:0}.mx summary{list-style:none;cursor:pointer}.mx summary::-webkit-details-marker{display:none}.mx-reg>summary{background:linear-gradient(90deg,#172644,#122039);font-weight:850;color:#fff}.mx-dist>summary{background:#111d33;font-weight:780;color:#eef3ff}.mx-center{background:#0d1629;color:#eaf1ff}.mx-reg>summary:hover,.mx-dist>summary:hover,.mx-center:hover{filter:brightness(1.12)}.inst{font-weight:800}.mx-reg>summary .inst{font-size:14px}.mx-dist>summary .inst{padding-left:26px}.mx-center .inst{padding-left:54px;font-weight:650;color:#dbeafe}.mx summary .inst:before{content:'▸';color:#b9ccff;font-size:12px;flex:0 0 auto;transition:transform .15s}.mx[open]>summary .inst:before{content:'▾'}.mx-center .inst:before{content:'';display:none}.inst-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.metric-cell{justify-content:flex-end;text-align:right;flex-direction:column;align-items:flex-end!important;gap:4px!important}.metric-cell .num{font-weight:820;color:#fff}.metric-cell.total .num{color:#dbeafe}.mini-track{width:86px;height:5px;border-radius:999px;background:#25334f;overflow:hidden}.mini-fill{height:100%;border-radius:999px;background:var(--blue)}.mini-fill.red{background:var(--red)}.mini-fill.amber{background:var(--amber)}.mini-fill.green{background:var(--green)}.mini-fill.cyan{background:var(--cyan)}.mini-fill.orange{background:#f97316}.mini-fill.yellow{background:#eab308}.matrix-empty{padding:28px;text-align:center;color:var(--muted)}
+.center-filter{position:relative}.suggestions{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#0f172a;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.35);max-height:260px;overflow:auto;z-index:50}.suggestions.open{display:block}.suggestion-item{padding:9px 10px;border-bottom:1px solid rgba(42,53,83,.65);cursor:pointer;color:var(--text);line-height:1.25}.suggestion-item:last-child{border-bottom:0}.suggestion-item:hover,.suggestion-item.active{background:var(--panel2)}.suggestion-code{font-weight:800;color:#bfdbfe;margin-right:6px}.suggestion-name{color:var(--text)}.suggestion-meta{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}aside{position:relative;top:0;height:auto}.grid2{grid-template-columns:1fr}header{display:block}.top-filters{grid-template-columns:repeat(2,minmax(150px,1fr));min-width:0;max-width:none;margin-top:14px}.top-filter{min-width:0}.tabs{position:static}.rank-table{font-size:11px}.rank-bar{display:none}.rank-name{min-width:180px}.rank-status{min-width:auto}.matrix-shell{--mx-cols:minmax(280px,1fr) repeat(4,120px)}.matrix-shell.matrix-read{--mx-cols:minmax(280px,1fr) repeat(6,120px)}}
+
+
+/* ============================================================
+   PALETA INSTITUCIONAL INSPIRADA EN MINERD
+   Azul institucional, rojo de énfasis, blanco y grises claros.
+   Se mantiene el color por significado en desempeño y lectura.
+   ============================================================ */
+:root{
+  --bg:#f3f7fc;
+  --panel:#ffffff;
+  --panel2:#eef4fb;
+  --panel3:#dce9f7;
+  --border:#c8d8ea;
+  --text:#10233f;
+  --muted:#53657d;
+  --soft:#0b3d75;
+  --blue:#003B71;
+  --blue2:#005DAA;
+  --red:#C8102E;
+  --amber:#F2A900;
+  --green:#2E7D32;
+  --cyan:#009AD6;
+  --purple:#5B4B8A;
+}
+body{
+  background:
+    radial-gradient(circle at top left,rgba(0,93,170,.13),transparent 34rem),
+    linear-gradient(180deg,#f8fbff 0%,#eef4fb 100%);
+  color:var(--text);
+}
+::-webkit-scrollbar-track{background:#e8f0f9}
+::-webkit-scrollbar-thumb{background:#9db4ce}
+::-webkit-scrollbar-thumb:hover{background:#718cae}
+header{
+  background:linear-gradient(135deg,#ffffff 0%,#f4f8ff 48%,#e6f0fb 100%);
+  border-bottom:4px solid var(--blue);
+  box-shadow:0 10px 28px rgba(0,59,113,.13);
+}
+h1{color:var(--blue)}
+.sub{color:#49627f}
+.top-filter label,label{color:var(--blue)}
+.top-filter select,select,input{
+  background:#ffffff;
+  color:var(--text);
+  border:1px solid #b8cce2;
+}
+.top-filter select:focus,select:focus,input:focus{
+  border-color:var(--blue2);
+  box-shadow:0 0 0 3px rgba(0,93,170,.15);
+  background:#ffffff;
+}
+aside{
+  background:linear-gradient(180deg,#ffffff,#f0f6fd);
+  border-right:1px solid #c8d8ea;
+  box-shadow:8px 0 22px rgba(0,59,113,.08);
+}
+button{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+button.secondary{background:#ffffff;border:1px solid #b8cce2;color:var(--blue)}
+.tabs{background:linear-gradient(180deg,rgba(243,247,252,.98),rgba(243,247,252,.86));}
+.tab{background:#ffffff;border:1px solid #c8d8ea;color:#31516f;box-shadow:0 6px 16px rgba(0,59,113,.08)}
+.tab.active{background:linear-gradient(135deg,var(--blue),var(--blue2));border-color:var(--blue);box-shadow:0 12px 24px rgba(0,93,170,.22);color:#fff}
+.summary-block,.summary-donut,.section,.rank-section{
+  background:#ffffff;
+  border:1px solid #c8d8ea;
+  box-shadow:0 12px 28px rgba(0,59,113,.10);
+}
+.summary-block h3,.summary-donut h3,.section h2,.rank-section h2{
+  background:linear-gradient(90deg,var(--blue),var(--blue2));
+  color:#ffffff;
+  border-bottom:0;
+}
+.summary-block h3:before,.summary-donut h3:before,.rank-section h2:before{
+  color:#ffffff;
+  filter:none;
+}
+.coverage-card{
+  background:linear-gradient(145deg,#ffffff,#f4f8ff);
+  border:1px solid #c8d8ea;
+}
+.coverage-card:before{background:var(--red)}
+.coverage-card.context:before{background:var(--blue)}
+.coverage-card small{color:var(--blue)}
+.coverage-card .val{color:var(--blue);text-shadow:none}
+.coverage-card .det,.summary-note{color:#53657d}
+table{color:var(--text)}
+th{background:var(--blue);color:#ffffff;border-bottom:0}
+td{border-bottom:1px solid #d8e4f1;color:var(--text)}
+tr:hover td{background:#eef4fb}
+.rank-table{background:#edf4fc}
+.rank-table thead th{background:var(--blue);color:#ffffff}
+.rank-table tbody tr{background:#ffffff;box-shadow:0 5px 16px rgba(0,59,113,.08)}
+.rank-table tbody tr:hover{background:#f6faff;box-shadow:0 8px 24px rgba(0,59,113,.14)}
+.rank-index{background:var(--blue);color:#ffffff}
+.rank-label{color:var(--text)}
+.rank-sub,.rank-eval{color:#53657d}
+.rank-bar,.mini-track{background:#d6e3f2}
+.matrix-shell{background:#ffffff;border-color:#c8d8ea;box-shadow:0 14px 28px rgba(0,59,113,.10)}
+.matrix-head{background:var(--blue);color:#ffffff}
+.matrix-row{border-bottom:1px solid #d8e4f1}
+.matrix-row>div{border-left:1px solid #d8e4f1}
+.mx-reg>summary{background:linear-gradient(90deg,#e4effa,#f8fbff);color:var(--blue)}
+.mx-dist>summary{background:#f4f8ff;color:#1b385f}
+.mx-center{background:#ffffff;color:var(--text)}
+.mx-center .inst{color:#1b385f}
+.metric-cell .num{color:var(--blue)}
+.metric-cell.total .num{color:var(--red)}
+.suggestions{background:#ffffff;border:1px solid #c8d8ea;box-shadow:0 12px 28px rgba(0,59,113,.18)}
+.suggestion-item{border-bottom:1px solid #d8e4f1;color:var(--text)}
+.suggestion-item:hover,.suggestion-item.active{background:#eef4fb}
+.suggestion-code{color:var(--blue)}
+.suggestion-meta{color:#53657d}
+
+
+
+/* Ajuste final: matriz de lectura visible sin desplazamiento horizontal */
+.matrix-shell{
+  width:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.matrix-shell.matrix-read{
+  --mx-cols: minmax(230px, 1.55fr) minmax(92px, .62fr) repeat(5, minmax(86px, .58fr));
+}
+.matrix-shell.matrix-perf{
+  --mx-cols: minmax(260px, 1.7fr) minmax(105px, .7fr) repeat(3, minmax(100px, .6fr));
+}
+.matrix-row{
+  min-width:0 !important;
+  width:100%;
+}
+.matrix-row > div{
+  padding:9px 10px;
+  white-space:normal;
+  line-height:1.18;
+  min-width:0;
+}
+.matrix-head{
+  font-size:10px;
+  letter-spacing:.015em;
+}
+.matrix-head > div{
+  min-height:44px;
+  align-items:center;
+}
+.matrix-shell.matrix-read .metric-cell,
+.matrix-shell.matrix-read .metric-cell.total{
+  padding:8px 8px;
+}
+.matrix-shell.matrix-read .metric-cell .num{
+  font-size:13px;
+}
+.matrix-shell.matrix-read .mini-track{
+  width:68px;
+  max-width:100%;
+}
+.matrix-shell.matrix-read .inst-name{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.matrix-shell.matrix-read .mx-reg > summary .inst{font-size:13px;}
+.matrix-shell.matrix-read .mx-dist > summary .inst{padding-left:18px;font-size:12px;}
+.matrix-shell.matrix-read .mx-center .inst{padding-left:38px;font-size:11.5px;}
+@media(max-width:1200px){
+  .matrix-shell.matrix-read{--mx-cols:minmax(190px,1.45fr) minmax(80px,.58fr) repeat(5,minmax(70px,.52fr));}
+  .matrix-shell.matrix-read .matrix-head{font-size:9px;}
+  .matrix-shell.matrix-read .metric-cell .num{font-size:12px;}
+  .matrix-shell.matrix-read .mini-track{display:none;}
+}
+
+</style>
+</head>
+<body>
+<header><div><h1>Dashboard de Resultados de Evaluaciones del Nivel Primario</h1><div class="sub">Septiembre · Noviembre · Marzo | Año escolar 2025-2026</div></div><div class="top-filters" aria-label="Filtros principales de grado, asignatura, competencia e indicador"><div class="top-filter"><label for="fGrado">Grado</label><select id="fGrado"></select></div><div class="top-filter"><label for="fArea">Área/asignatura</label><select id="fArea"></select></div><div class="top-filter"><label for="fComp">Competencia</label><select id="fComp"></select></div><div class="top-filter"><label for="fIndicador">Indicador</label><select id="fIndicador"></select></div></div></header>
+<div class="layout"><aside>
+<label>Periodo</label><select id="fPeriodo"></select>
+<label>Regional</label><select id="fRegional"></select>
+<label>Distrito</label><select id="fDistrito"></select>
+<label>Centro educativo</label><div class="center-filter"><input id="fCentro" placeholder="Escriba el código o nombre del centro" autocomplete="off"><div id="centerSuggest" class="suggestions"></div></div>
+<label>Sector</label><select id="fSector"></select>
+<label>Tipo de centro</label><select id="fTipo"></select>
+<label>Tanda</label><select id="fTanda"></select>
+<div class="buttons"><button onclick="resetFilters()" class="secondary">Limpiar filtros</button><button onclick="exportCSV('resumen')" class="secondary">Exportar resumen</button></div>
+</aside><main>
+<div class="tabs"><button class="tab active" onclick="showPane('resumen',this)">Resumen</button><button class="tab" onclick="showPane('desempeno',this)">Desempeño</button><button class="tab" onclick="showPane('lectura',this)">Lectura</button><button class="tab" onclick="showPane('evolucion',this)">Evolución</button><button class="tab" onclick="showPane('brechas',this)">Brechas</button><button class="tab" onclick="showPane('matriz',this)">Matriz</button></div>
+<section id="resumen" class="pane active"><div class="cards" id="cards"></div><div class="grid2"><div class="section"><h2>Desempeño por periodo</h2><div class="body"><canvas id="cDist"></canvas></div></div><div class="section"><h2>Niveles de lectura por periodo</h2><div class="body"><canvas id="cRead"></canvas></div></div></div></section>
+<section id="desempeno" class="pane"><div class="section"><h2>Desempeño por grado</h2><div class="body"><canvas id="cGrade"></canvas></div></div><div class="section"><h2>Desempeño por área</h2><div class="body"><canvas id="cArea"></canvas></div></div></section>
+<section id="lectura" class="pane"><div class="section"><h2>Niveles de lectura por grado</h2><div class="body"><canvas id="cReadGrade"></canvas></div></div><div class="section"><h2>Tabla de lectura por grado y periodo</h2><div class="body tablewrap"><table id="tLect"></table></div></div></section>
+<section id="evolucion" class="pane"><div class="section"><h2>Evolución del desempeño por periodo</h2><div class="body"><canvas id="cEvolPerf"></canvas></div></div><div class="section"><h2>Evolución de lectura por periodo</h2><div class="body"><canvas id="cEvolRead"></canvas></div></div></section>
+<section id="brechas" class="pane"><div class="brechas-grid"><div class="section rank-section"><h2>Ranking por regional</h2><div class="body tablewrap"><table id="tReg" class="rank-table"></table></div></div><div class="section rank-section"><h2>Ranking por distrito</h2><div class="body tablewrap"><table id="tDist" class="rank-table"></table></div></div><div class="section rank-section"><h2>Ranking por centro educativo</h2><div class="body tablewrap"><table id="tCentro" class="rank-table"></table></div></div></div></section>
+<section id="matriz" class="pane"><div class="section"><h2>Matriz jerárquica Regional → Distrito → Centro</h2><div class="body"><label style="margin-top:0">Tipo de análisis</label><select id="matrixMode" onchange="renderMatrix()" style="max-width:260px"><option value="perf">Desempeño</option><option value="read">Lectura</option></select><input id="matrixSearch" oninput="renderMatrix()" placeholder="Buscar en la matriz" style="max-width:320px;margin-left:8px"><div class="tablewrap" style="margin-top:12px"><div id="matrix"></div></div></div></div></section>
+</main></div>
+<script>
+const DATA = JSON.parse(
+  pako.inflate(
+    Uint8Array.from(atob(window.SIREV_DATA_COMPRESSED), c => c.charCodeAt(0)),
+    { to: 'string' }
+  )
+);
+const D=DATA.dict;
+const PERIODS=['Septiembre','Noviembre','Marzo','Mayo'];
+const AREA={LE:'Lengua Española',MA:'Matemática',CS:'Ciencias Sociales',CN:'Ciencias de la Naturaleza'};
+const AREA_ORDER=['LE','MA','CS','CN'];
+function orderAreas(opts){const set=new Set(opts.filter(Boolean)); return AREA_ORDER.filter(a=>set.has(a)).concat([...set].filter(a=>!AREA_ORDER.includes(a)).sort((a,b)=>a.localeCompare(b,'es')));}
+const AREA_SHORT={'Lengua Española':'LE','Matemática':'MA','Ciencias Sociales':'CS','Ciencias de la Naturaleza':'CN'};
+const COLORS={E:'#C8102E',A:'#F2A900',S:'#005DAA',N1:'#C8102E',N2:'#F26B21',N3:'#F2A900',N4:'#009AD6',N5:'#005DAA'};
+const GRADE_LABELS={G1:'Primero',G2:'Segundo',G3:'Tercero',G4:'Cuarto',G5:'Quinto',G6:'Sexto'};
+const READ_LABELS={N1:'Lector de imágenes',N2:'Lector de sílabas',N3:'Lector de palabras',N4:'Lector no fluido',N5:'Lector fluido'};
+function gradeLabel(g){return GRADE_LABELS[g]||g}
+function readLabel(n){return READ_LABELS[n]||n}
+function competenciaLabel(c){return c?String(c).replace(/^C/,'Competencia '):c}
+const READ_LEVEL_ORDER=['N1','N2','N3','N4','N5'];
+const READ_LEVEL_LABELS=READ_LEVEL_ORDER.map(readLabel);
+let charts={}, F={};
+function s(id){return D[id]||''} function fmt(n){return (n||0).toLocaleString('es-DO')} function pct(n,d){return d? n*100/d:0} function round2(n){return Math.round((+n||0)*100)/100;}
+function p1(x){return (x||0).toFixed(2)+'%'}
+function rowMatch(r,type){let offArea=type==='perf'; if(F.periodo&&s(r[0])!==F.periodo)return false; if(F.regional&&s(r[1])!==F.regional)return false; if(F.distrito&&s(r[2])!==F.distrito)return false; if(F.sector&&s(r[5])!==F.sector)return false; if(F.tipo&&s(r[6])!==F.tipo)return false; if(F.tanda&&s(r[7])!==F.tanda)return false; if(F.grado&&s(r[8])!==F.grado)return false; if(F.area&&offArea&&s(r[9])!==F.area)return false; if(type==='perf'&&F.comp&&s(r[10])!==F.comp)return false; if(type==='perf'&&F.indicador&&s(r[11])!==F.indicador)return false; if(F.centro){let c=(s(r[3])+' '+s(r[4])).toLowerCase(); if(!c.includes(F.centro))return false;} return true;}
+function getF(){F={periodo:val('fPeriodo'),regional:val('fRegional'),distrito:val('fDistrito'),centro:document.getElementById('fCentro').value.trim().toLowerCase(),sector:val('fSector'),tipo:val('fTipo'),tanda:val('fTanda'),grado:val('fGrado'),area:val('fArea'),comp:val('fComp'),indicador:val('fIndicador')};}
+function val(id){return document.getElementById(id).value}
+function validRegional(v){return /^\d{2}\s*-/.test(String(v||''));}
+function validDistrito(v){return /^\d{4}\s*-/.test(String(v||''));}
+function validCov(r){return validRegional(s(r[1])) && validDistrito(s(r[2])) && String(s(r[4])||s(r[3])||'').trim()!=='' && s(r[1])!=='#N/A' && s(r[2])!=='#N/A';}
+function uniqueFrom(rows,idx,type){let set=new Set(); for(const r of rows){ if(type==='cov'&&!validCov(r)) continue; if(rowMatchForOptions(r,type,idx)){ const v=s(r[idx]); if(idx===1&&!validRegional(v)) continue; if(idx===2&&!validDistrito(v)) continue; set.add(v); }} return [...set].filter(Boolean).sort((a,b)=>PERIODS.includes(a)?PERIODS.indexOf(a)-PERIODS.indexOf(b):a.localeCompare(b,'es'));}
+function rowMatchForOptions(r,type,ignoreIdx){if(ignoreIdx!==0&&F.periodo&&s(r[0])!==F.periodo)return false; if(ignoreIdx!==1&&F.regional&&s(r[1])!==F.regional)return false; if(ignoreIdx!==2&&F.distrito&&s(r[2])!==F.distrito)return false; if(ignoreIdx!==5&&F.sector&&s(r[5])!==F.sector)return false; if(ignoreIdx!==6&&F.tipo&&s(r[6])!==F.tipo)return false; if(ignoreIdx!==7&&F.tanda&&s(r[7])!==F.tanda)return false; if(ignoreIdx!==8&&F.grado&&s(r[8])!==F.grado)return false; if(type==='perf'&&ignoreIdx!==9&&F.area&&s(r[9])!==F.area)return false; if(type==='perf'&&ignoreIdx!==10&&F.comp&&s(r[10])!==F.comp)return false; if(type==='perf'&&ignoreIdx!==11&&F.indicador&&s(r[11])!==F.indicador)return false; if(F.centro){let c=(s(r[3])+' '+s(r[4])).toLowerCase(); if(!c.includes(F.centro))return false;} return true;}
+function populate(id,opts,label){const el=document.getElementById(id), cur=el.value; const display=o=>id==='fGrado'?gradeLabel(o):(id==='fArea'?(AREA[o]||o):(id==='fComp'?competenciaLabel(o):o)); el.innerHTML='<option value="">'+label+'</option>'+opts.map(o=>'<option value="'+escapeHtml(o)+'">'+escapeHtml(display(o))+'</option>').join(''); if(opts.includes(cur))el.value=cur;}
+function centerLabel(r){let code=s(r[3]), name=s(r[4]); if(!name)return code; if(code&&name.startsWith(code))return name; return code?code+' - '+name:name;}
+function centerBaseRows(){return F.area?DATA.perf:DATA.cov;}
+function centerRowMatchesContext(r,type){if(type==='cov'&&!validCov(r))return false; if(F.periodo&&s(r[0])!==F.periodo)return false; if(F.regional&&s(r[1])!==F.regional)return false; if(F.distrito&&s(r[2])!==F.distrito)return false; if(F.sector&&s(r[5])!==F.sector)return false; if(F.tipo&&s(r[6])!==F.tipo)return false; if(F.tanda&&s(r[7])!==F.tanda)return false; if(F.grado&&s(r[8])!==F.grado)return false; if(type==='perf'&&F.area&&s(r[9])!==F.area)return false; if(type==='perf'&&F.comp&&s(r[10])!==F.comp)return false; if(type==='perf'&&F.indicador&&s(r[11])!==F.indicador)return false; return true;}
+function getCenterSuggestions(){getF(); const q=F.centro; const rows=centerBaseRows(); const type=F.area?'perf':'cov'; const map=new Map(); for(const r of rows){if(!centerRowMatchesContext(r,type))continue; const code=s(r[3]), name=s(r[4]); if(!code&&!name)continue; const label=centerLabel(r); const hay=(code+' '+name).toLowerCase(); if(q&&!hay.includes(q))continue; const key=code+'|'+name; if(!map.has(key))map.set(key,{code,name,label,regional:s(r[1]),distrito:s(r[2])}); if(map.size>=12)break;} return [...map.values()].sort((a,b)=>a.label.localeCompare(b.label,'es'));}
+function showCenterSuggestions(){const box=document.getElementById('centerSuggest'); if(!box)return; const items=getCenterSuggestions(); const q=document.getElementById('fCentro').value.trim(); if(!q||!items.length){box.classList.remove('open'); box.innerHTML=''; return;} box.innerHTML=items.map(item=>`<div class="suggestion-item" onmousedown="selectCenterSuggestion('${escapeJs(item.label)}')"><span class="suggestion-code">${escapeHtml(item.code)}</span><span class="suggestion-name">${escapeHtml(item.name.replace(/^\d+\s*-\s*/,''))}</span><span class="suggestion-meta">${escapeHtml(item.distrito)} · ${escapeHtml(item.regional)}</span></div>`).join(''); box.classList.add('open');}
+function selectCenterSuggestion(label){document.getElementById('fCentro').value=label; hideCenterSuggestions(); apply();}
+function hideCenterSuggestions(){const box=document.getElementById('centerSuggest'); if(box){box.classList.remove('open'); box.innerHTML='';}}
+function escapeJs(x){return String(x).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ')}
+function rebuildFilters(){getF(); const both=DATA.cov.length?DATA.cov:DATA.perf; populate('fPeriodo',uniqueFrom(DATA.perf,0,'perf'),'Todos'); populate('fRegional',uniqueFrom(both,1,'cov'),'Todas'); populate('fDistrito',uniqueFrom(both,2,'cov'),'Todos'); populate('fSector',uniqueFrom(both,5,'cov'),'Todos'); populate('fTipo',uniqueFrom(both,6,'cov'),'Todos'); populate('fTanda',uniqueFrom(both,7,'cov'),'Todas'); populate('fGrado',uniqueFrom(DATA.perf.concat(DATA.read),8,'perf').sort((a,b)=>+a.slice(1)-+b.slice(1)),'Todos'); populate('fArea',orderAreas(uniqueFrom(DATA.perf,9,'perf')),'Todas'); populate('fComp',uniqueFrom(DATA.perf,10,'perf').sort((a,b)=>parseInt(String(a).replace(/\D/g,''))-parseInt(String(b).replace(/\D/g,''))),'Todas'); populate('fIndicador',uniqueFrom(DATA.perf,11,'perf').sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true})),'Todos');}
+function filtered(){getF(); return {perf:DATA.perf.filter(r=>rowMatch(r,'perf')), read:DATA.read.filter(r=>rowMatch(r,'read')), cov:DATA.cov.filter(r=>validCov(r)&&rowMatch(r,'cov'))};}
+function aggPerf(rows){let E=0,A=0,S=0; for(const r of rows){E+=r[12]||0;A+=r[13]||0;S+=r[14]||0} return {E,A,S,total:E+A+S,pE:pct(E,E+A+S),pA:pct(A,E+A+S),pS:pct(S,E+A+S)}}
+function aggRead(rows){let a=[0,0,0,0,0]; for(const r of rows) for(let i=0;i<5;i++) a[i]+=r[9+i]||0; let t=a.reduce((x,y)=>x+y,0); return {N1:a[0],N2:a[1],N3:a[2],N4:a[3],N5:a[4],total:t,pN1:pct(a[0],t),pN2:pct(a[1],t),pN3:pct(a[2],t),pN4:pct(a[3],t),pN5:pct(a[4],t)}}
+function aggCov(rows){let m=0,e=0; for(const r of rows){m+=r[9]||0;e+=r[10]||0} return {mat:m,eval:e,pEval:pct(e,m)}}
+function groupAgg(rows,keyIdx,kind){let m=new Map(); for(const r of rows){let k=s(r[keyIdx]); if(!k)continue; if(!m.has(k))m.set(k,[]); m.get(k).push(r)} return [...m.entries()].map(([k,rs])=>{let a=kind==='read'?aggRead(rs):aggPerf(rs); return {name:k,...a}})}
+function render(){const f=filtered(), ap=aggPerf(f.perf), ar=aggRead(f.read), ac=aggCov(f.cov); renderCards(ap,ar,ac,f); renderCharts(f,ap,ar); renderTables(f); renderMatrix(); renderBadges();}
+function donutCoverage(rows,keyIdx,labelMap={}){let m=new Map();for(const r of rows){let key=s(r[keyIdx]); if(!key) continue; let val=+r[10]||0; if(val<=0) continue; let name=labelMap[key]||key; m.set(name,(m.get(name)||0)+val);} let items=[...m.entries()].sort((a,b)=>b[1]-a[1]); let total=items.reduce((acc,cur)=>acc+cur[1],0); return {labels:items.map(x=>x[0]), data:items.map(x=>round2(pct(x[1],total))), total};}
+function renderCards(ap,ar,ac,f){
+  let centros=new Set(f.cov.map(r=>s(r[3])||s(r[4])).filter(Boolean)).size;
+  let regs=new Set(f.cov.map(r=>s(r[1])).filter(validRegional)).size;
+  let dists=new Set(f.cov.map(r=>s(r[2])).filter(validDistrito)).size;
+  const coverage=[
+    {label:'Matrícula',value:fmt(ac.mat),detail:'',cls:''},
+    {label:'Evaluados',value:fmt(ac.eval),detail:p1(ac.pEval)+' de la matrícula',cls:''},
+    {label:'Regionales',value:fmt(regs),detail:'',cls:'context'},
+    {label:'Distritos',value:fmt(dists),detail:'',cls:'context'},
+    {label:'Centros',value:fmt(centros),detail:'',cls:'context'}
+  ];
+  const covCard=x=>`<div class="coverage-card ${x.cls}"><small>${x.label}</small><div class="val">${x.value}</div>${x.detail?`<div class="det">${x.detail}</div>`:''}</div>`;
+  const html=`
+  <div class="summary-block coverage-summary">
+    <h3>Cobertura de la evaluación</h3>
+    <div class="coverage-row">${coverage.map(covCard).join('')}</div>
+  </div>
+  <div class="donut-row">
+    <div class="summary-donut"><h3>Tipo de centro</h3><div class="body"><canvas id="cTipo"></canvas></div><div class="summary-note">Distribución de estudiantes evaluados por tipo de centro.</div></div>
+    <div class="summary-donut"><h3>Sector</h3><div class="body"><canvas id="cSector"></canvas></div><div class="summary-note">Distribución de estudiantes evaluados por sector.</div></div>
+    <div class="summary-donut"><h3>Tanda</h3><div class="body"><canvas id="cTanda"></canvas></div><div class="summary-note">Distribución de estudiantes evaluados por tanda.</div></div>
+  </div>`;
+  document.getElementById('cards').innerHTML=html;
+}
+const valueLabelsPlugin={id:'valueLabelsPlugin',afterDatasetsDraw(chart){
+  const{ctx}=chart;
+  const type=chart.config.type;
+  ctx.save();
+  ctx.font='700 11px IBM Plex Sans, Segoe UI, sans-serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+
+  if(type==='doughnut'){
+    const meta=chart.getDatasetMeta(0);
+    const data=chart.data.datasets[0].data||[];
+    meta.data.forEach((el,i)=>{
+      const value=Number(data[i]);
+      if(!isFinite(value)||value<=0)return;
+      const label=p1(value);
+      const pos=el.tooltipPosition();
+      ctx.lineWidth=3;
+      ctx.strokeStyle='rgba(0,59,113,.82)';
+      ctx.fillStyle='#ffffff';
+      ctx.strokeText(label,pos.x,pos.y);
+      ctx.fillText(label,pos.x,pos.y);
+    });
+    ctx.restore();
+    return;
+  }
+
+  if(type!=='bar'){
+    ctx.restore();
+    return;
+  }
+
+  ctx.font='600 11px IBM Plex Sans, Segoe UI, sans-serif';
+  for(const datasetIndex in chart.data.datasets){
+    const meta=chart.getDatasetMeta(Number(datasetIndex));
+    if(meta.hidden)continue;
+    const data=chart.data.datasets[datasetIndex].data||[];
+    meta.data.forEach((el,i)=>{
+      const value=Number(data[i]);
+      if(!isFinite(value)||value<=0)return;
+      const label=p1(value);
+      ctx.fillStyle='#ffffff';
+      ctx.textBaseline='bottom';
+      let y=el.y-6;
+      if(chart.options.scales?.x?.stacked&&value>=4){ctx.textBaseline='middle';y=el.y+10;}
+      ctx.fillText(label,el.x,y);
+    });
+  }
+  ctx.restore();
+}};
+function chart(id,type,labels,datasets,stack=false){if(charts[id]) charts[id].destroy(); const baseOptions={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:(type==='doughnut'||datasets.length>1),labels:{color:'#31465f'},position:type==='doughnut'?'bottom':'top'}}}; if(type==='doughnut'){baseOptions.plugins.tooltip={callbacks:{label:(ctx)=>`${ctx.label}: ${round2(ctx.raw)}%`}}; baseOptions.cutout='56%';} else {baseOptions.plugins.tooltip={callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${p1(Number(ctx.raw)||0)}`}}; baseOptions.scales={x:{ticks:{color:'#31465f'},grid:{color:'rgba(0,59,113,.08)'},stacked:stack},y:{beginAtZero:true,max:100,ticks:{color:'#9aa8c7',callback:v=>v+'%'},grid:{color:'rgba(0,59,113,.10)'},stacked:stack}};} charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},plugins:[valueLabelsPlugin],options:baseOptions});}
+function renderCharts(f,ap,ar){const tipoData=donutCoverage(f.cov,6), sectorData=donutCoverage(f.cov,5), tandaData=donutCoverage(f.cov,7); chart('cTipo','doughnut',tipoData.labels,[{data:tipoData.data,backgroundColor:['#005DAA','#C8102E','#F2A900','#009AD6','#5B4B8A','#2E7D32','#7FAFD4','#F26B21']}]); chart('cSector','doughnut',sectorData.labels,[{data:sectorData.data,backgroundColor:['#005DAA','#C8102E','#F2A900','#009AD6','#5B4B8A','#2E7D32']}]); chart('cTanda','doughnut',tandaData.labels,[{data:tandaData.data,backgroundColor:['#005DAA','#009AD6','#F2A900','#C8102E','#5B4B8A','#7FAFD4']}]);
+let resumenPeriodsD=PERIODS.filter(p=>f.perf.some(r=>s(r[0])===p));
+let resumenPerf=(lev)=>resumenPeriodsD.map(p=>{let a=aggPerf(f.perf.filter(r=>s(r[0])===p)); return lev==='E'?a.pE:lev==='A'?a.pA:a.pS});
+chart('cDist','bar',resumenPeriodsD,[
+  {label:'Elemental',data:resumenPerf('E'),backgroundColor:COLORS.E},
+  {label:'Aceptable',data:resumenPerf('A'),backgroundColor:COLORS.A},
+  {label:'Satisfactorio',data:resumenPerf('S'),backgroundColor:COLORS.S}
+],true);
+let resumenPeriodsL=PERIODS.filter(p=>f.read.some(r=>s(r[0])===p));
+let resumenRead=(n)=>resumenPeriodsL.map(p=>aggRead(f.read.filter(r=>s(r[0])===p))['pN'+n]);
+chart('cRead','bar',resumenPeriodsL,[1,2,3,4,5].map(n=>({label:READ_LEVEL_LABELS[n-1],data:resumenRead(n),backgroundColor:COLORS['N'+n]})),true);
+let grades=[...new Set(f.perf.map(r=>s(r[8])))].sort((a,b)=>+a.slice(1)-+b.slice(1)); let ds=(ix)=>grades.map(g=>{let a=aggPerf(f.perf.filter(r=>s(r[8])===g)); return ix==='E'?a.pE:ix==='A'?a.pA:a.pS}); chart('cGrade','bar',grades.map(gradeLabel),[{label:'Elemental',data:ds('E'),backgroundColor:COLORS.E},{label:'Aceptable',data:ds('A'),backgroundColor:COLORS.A},{label:'Satisfactorio',data:ds('S'),backgroundColor:COLORS.S}]);
+let areas=orderAreas([...new Set(f.perf.map(r=>s(r[9])))]); let dsa=(ix)=>areas.map(a=>{let x=aggPerf(f.perf.filter(r=>s(r[9])===a)); return ix==='E'?x.pE:ix==='A'?x.pA:x.pS}); chart('cArea','bar',areas.map(a=>AREA[a]||a),[{label:'Elemental',data:dsa('E'),backgroundColor:COLORS.E},{label:'Aceptable',data:dsa('A'),backgroundColor:COLORS.A},{label:'Satisfactorio',data:dsa('S'),backgroundColor:COLORS.S}]);
+let dsl=(n)=>grades.map(g=>aggRead(f.read.filter(r=>s(r[8])===g))['pN'+n]); chart('cReadGrade','bar',grades.map(gradeLabel),[1,2,3,4,5].map(n=>({label:READ_LEVEL_LABELS[n-1],data:dsl(n),backgroundColor:COLORS['N'+n]})),true);
+let periods=PERIODS.filter(p=>f.perf.some(r=>s(r[0])===p)); let ep=(lev)=>periods.map(p=>{let a=aggPerf(f.perf.filter(r=>s(r[0])===p)); return lev==='E'?a.pE:lev==='A'?a.pA:a.pS}); chart('cEvolPerf','line',periods,[{label:'Elemental',data:ep('E'),borderColor:COLORS.E,backgroundColor:COLORS.E+'33'},{label:'Aceptable',data:ep('A'),borderColor:COLORS.A,backgroundColor:COLORS.A+'33'},{label:'Satisfactorio',data:ep('S'),borderColor:COLORS.S,backgroundColor:COLORS.S+'33'}]);
+let periodsR=PERIODS.filter(p=>f.read.some(r=>s(r[0])===p)); let er=(n)=>periodsR.map(p=>aggRead(f.read.filter(r=>s(r[0])===p))['pN'+n]); chart('cEvolRead','line',periodsR,[1,2,3,4,5].map(n=>({label:READ_LEVEL_LABELS[n-1],data:er(n),borderColor:COLORS['N'+n],backgroundColor:COLORS['N'+n]+'33'})));}
+function table(id,headers,rows){document.getElementById(id).innerHTML='<thead><tr>'+headers.map((h,i)=>`<th onclick="sortTable('${id}',${i})">${h}</th>`).join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody>';}
+function renderTables(f){let periods=PERIODS.filter(p=>f.read.some(r=>s(r[0])===p)), grades=[...new Set(f.read.map(r=>s(r[8])))].sort((a,b)=>+a.slice(1)-+b.slice(1)); let rows=[]; for(const g of grades)for(const p of periods){let a=aggRead(f.read.filter(r=>s(r[8])===g&&s(r[0])===p)); if(a.total) rows.push(`<tr><td>${gradeLabel(g)}</td><td>${p}</td><td>${p1(a.pN1)}</td><td>${p1(a.pN2)}</td><td>${p1(a.pN3)}</td><td>${p1(a.pN4)}</td><td>${p1(a.pN5)}</td><td class="right">${fmt(a.total)}</td></tr>`)} table('tLect',['Grado','Periodo',...READ_LEVEL_LABELS,'Total'],rows);
+rank('tReg',f,1); rank('tDist',f,2); rank('tCentro',f,4);}
+function rankStatus(pS){
+  if(pS>=40)return {cls:'high',txt:'Mayor avance'};
+  if(pS>=30)return {cls:'mid',txt:'Intermedio'};
+  return {cls:'low',txt:'Priorizar'};
+}
+function rankPct(v,cls){
+  const w=Math.max(0,Math.min(100,Number(v)||0));
+  return `<span class="rank-pill"><span class="rank-pct ${cls}">${p1(w)}</span><span class="rank-bar"><span class="rank-fill ${cls}" style="width:${w}%"></span></span></span>`;
+}
+function rank(id,f,idx){
+  let map=new Map();
+  for(const r of f.perf){
+    let k=s(r[idx]);
+    if(!k)continue;
+    if(!map.has(k))map.set(k,[]);
+    map.get(k).push(r)
+  }
+  let rows=[...map.entries()]
+    .map(([name,rs])=>{
+      const a=aggPerf(rs);
+      const evaluados=aggCov(f.cov.filter(c=>s(c[idx])===name)).eval;
+      return {name,evaluados,...a};
+    })
+    .filter(x=>x.evaluados>0)
+    .sort((a,b)=>b.pS-a.pS)
+    .slice(0,300)
+    .map((x,i)=>{
+      const st=rankStatus(x.pS);
+      return `<tr>
+        <td><div class="rank-name"><span class="rank-index">${i+1}</span><span><span class="rank-label">${escapeHtml(x.name)}</span><span class="rank-sub">Ordenado por mayor % Satisfactorio</span></span></div></td>
+        <td class="right"><span class="rank-eval">${fmt(x.evaluados)}</span></td>
+        <td class="right">${rankPct(x.pE,'red')}</td>
+        <td class="right">${rankPct(x.pA,'amber')}</td>
+        <td class="right">${rankPct(x.pS,'green')}</td>
+        <td class="right"><span class="rank-status ${st.cls}">${st.txt}</span></td>
+      </tr>`;
+    });
+  table(id,['Nombre','Estudiantes evaluados','% Elemental','% Aceptable','% Satisfactorio','Estado'],rows);
+}
+function covEvalFor(f, reg, dist, cent){
+  const rows=f.cov.filter(r=>{
+    if(reg && s(r[1])!==reg) return false;
+    if(dist && s(r[2])!==dist) return false;
+    if(cent && s(r[4])!==cent) return false;
+    return true;
+  });
+  return aggCov(rows).eval;
+}
+function renderMatrix(){
+  let f=filtered(), mode=val('matrixMode'), q=document.getElementById('matrixSearch').value.toLowerCase();
+  let rows=mode==='read'?f.read:f.perf;
+  let regMap=new Map();
+  for(const r of rows){
+    let reg=s(r[1]),dist=s(r[2]),cent=s(r[4]);
+    if(!reg||!dist||!cent)continue;
+    if(!validRegional(reg)||!validDistrito(dist))continue;
+    if(q&&!((reg+' '+dist+' '+cent).toLowerCase().includes(q)))continue;
+    if(!regMap.has(reg))regMap.set(reg,new Map());
+    if(!regMap.get(reg).has(dist))regMap.get(reg).set(dist,new Map());
+    if(!regMap.get(reg).get(dist).has(cent))regMap.get(reg).get(dist).set(cent,[]);
+    regMap.get(reg).get(dist).get(cent).push(r)
+  }
+  let head=mode==='read'?['Institución','Estudiantes evaluados',...READ_LEVEL_LABELS.map(x=>'% '+x)]:['Institución','Estudiantes evaluados','% Elemental','% Aceptable','% Satisfactorio'];
+  let cls=mode==='read'?'matrix-read':'matrix-perf';
+  let html=`<div class="matrix-shell ${cls}"><div class="matrix-row matrix-head">${head.map(h=>'<div>'+escapeHtml(h)+'</div>').join('')}</div>`;
+  if(!regMap.size){html+='<div class="matrix-empty">No hay datos para mostrar con los filtros seleccionados.</div></div>'; document.getElementById('matrix').innerHTML=html; return;}
+  for(const [reg,dm] of [...regMap.entries()].sort()){
+    let regRows=[...dm.values()].flatMap(cm=>[...cm.values()].flat());
+    let ar=mode==='read'?aggRead(regRows):aggPerf(regRows);
+    let regEval=covEvalFor(f,reg,null,null);
+    html+=`<details class="mx mx-reg"><summary class="matrix-row"><div class="inst"><span class="inst-name">${escapeHtml(reg)}</span></div>${matrixCells(ar,mode,regEval)}</summary>`;
+    for(const [dist,cm] of [...dm.entries()].sort()){
+      let distRows=[...cm.values()].flat();
+      let ad=mode==='read'?aggRead(distRows):aggPerf(distRows);
+      let distEval=covEvalFor(f,reg,dist,null);
+      html+=`<details class="mx mx-dist"><summary class="matrix-row"><div class="inst"><span class="inst-name">${escapeHtml(dist)}</span></div>${matrixCells(ad,mode,distEval)}</summary>`;
+      for(const [cent,rs] of [...cm.entries()].sort()){
+        let ac=mode==='read'?aggRead(rs):aggPerf(rs);
+        let centEval=covEvalFor(f,reg,dist,cent);
+        html+=`<div class="matrix-row mx-center"><div class="inst"><span class="inst-name">${escapeHtml(cent)}</span></div>${matrixCells(ac,mode,centEval)}</div>`
+      }
+      html+='</details>'
+    }
+    html+='</details>'
+  }
+  html+='</div>'; document.getElementById('matrix').innerHTML=html;
+} 
+function matrixVals(a,mode){return mode==='read'?`Total: ${fmt(a.total)} | Lector fluido: ${p1(a.pN5)} | Iniciales: ${p1(pct(a.N1+a.N2,a.total))}`:`Total: ${fmt(a.total)} | Satisfactorio: ${p1(a.pS)} | Elemental: ${p1(a.pE)}`;}
+function mTotal(n){return `<div class="metric-cell total"><span class="num">${fmt(n)}</span></div>`;}
+function mPct(v,cls){let w=Math.max(0,Math.min(100,Number(v)||0));return `<div class="metric-cell"><span class="num">${p1(w)}</span><span class="mini-track"><span class="mini-fill ${cls}" style="width:${w}%"></span></span></div>`;}
+function matrixCells(a,mode,totalStudents){const total = Number.isFinite(Number(totalStudents)) ? Number(totalStudents) : a.total; if(mode==='read')return mTotal(total)+mPct(a.pN1,'red')+mPct(a.pN2,'orange')+mPct(a.pN3,'yellow')+mPct(a.pN4,'cyan')+mPct(a.pN5,'green'); return mTotal(total)+mPct(a.pE,'red')+mPct(a.pA,'amber')+mPct(a.pS,'green');}
+function sortTable(id,col){let tb=document.querySelector('#'+id+' tbody'); let rs=[...tb.rows], asc=tb.dataset.sort!=='asc'; rs.sort((a,b)=>{let A=a.cells[col].innerText.replace(/[%,]/g,''),B=b.cells[col].innerText.replace(/[%,]/g,''); let nA=parseFloat(A),nB=parseFloat(B); return !isNaN(nA)&&!isNaN(nB)?(asc?nA-nB:nB-nA):(asc?A.localeCompare(B,'es'):B.localeCompare(A,'es'))}); tb.dataset.sort=asc?'asc':'desc'; rs.forEach(r=>tb.appendChild(r));}
+function showPane(id,btn){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');setTimeout(()=>Object.values(charts).forEach(c=>c.resize()),50)}
+function resetFilters(){['fPeriodo','fRegional','fDistrito','fSector','fTipo','fTanda','fGrado','fArea','fComp','fIndicador'].forEach(id=>document.getElementById(id).value='');document.getElementById('fCentro').value='';hideCenterSuggestions();apply();}
+function apply(){rebuildFilters(); render();}
+function renderBadges(){ /* Etiquetas superiores desactivadas para una interfaz más limpia. */ }
+function exportCSV(){let f=filtered(), rows=[['Periodo','Regional','Distrito','Centro','Grado','Área','Competencia','Indicador','E','A','S']]; for(const r of f.perf) rows.push([s(r[0]),s(r[1]),s(r[2]),s(r[4]),gradeLabel(s(r[8])),(AREA[s(r[9])]||s(r[9])),competenciaLabel(s(r[10])),s(r[11]),r[12],r[13],r[14]]); let csv=rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\\n'); let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download='resumen_desempeno_filtrado.csv'; a.click();}
+function escapeHtml(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+document.addEventListener('DOMContentLoaded',()=>{['fPeriodo','fRegional','fDistrito','fSector','fTipo','fTanda','fGrado','fArea','fComp','fIndicador'].forEach(id=>document.getElementById(id).addEventListener('change',apply)); const centro=document.getElementById('fCentro'); centro.addEventListener('input',()=>{showCenterSuggestions();apply();}); centro.addEventListener('focus',showCenterSuggestions); document.addEventListener('click',e=>{if(!e.target.closest('.center-filter'))hideCenterSuggestions();});});
+document.addEventListener('DOMContentLoaded',()=>{rebuildFilters();render();});
+</script>
+</body></html>
