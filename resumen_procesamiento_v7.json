@@ -1,0 +1,87 @@
+{
+  "source": "clean_xlsx_v7",
+  "files": [
+    {
+      "archivo": "SEPT PRIMER CICLO.xlsx",
+      "filas_validas": 4959,
+      "filas_invalidas": 48,
+      "cobertura": 14475,
+      "desempeno": 312931,
+      "lectura": 48960,
+      "columnas_desempeno": 81,
+      "columnas_lectura": 15
+    },
+    {
+      "archivo": "SEPT SEGUNDO CICLO.xlsx",
+      "filas_validas": 4632,
+      "filas_invalidas": 0,
+      "cobertura": 12765,
+      "desempeno": 753290,
+      "lectura": 0,
+      "columnas_desempeno": 207,
+      "columnas_lectura": 0
+    },
+    {
+      "archivo": "NOV PPRIMER CICLO.xlsx",
+      "filas_validas": 5147,
+      "filas_invalidas": 100,
+      "cobertura": 14956,
+      "desempeno": 345089,
+      "lectura": 55761,
+      "columnas_desempeno": 81,
+      "columnas_lectura": 15
+    },
+    {
+      "archivo": "NOV SEGUNDO CICLO.xlsx",
+      "filas_validas": 4803,
+      "filas_invalidas": 0,
+      "cobertura": 13155,
+      "desempeno": 796275,
+      "lectura": 0,
+      "columnas_desempeno": 210,
+      "columnas_lectura": 0
+    },
+    {
+      "archivo": "MAR PPRIMER CICLO.xlsx",
+      "filas_validas": 5191,
+      "filas_invalidas": 0,
+      "cobertura": 14985,
+      "desempeno": 341315,
+      "lectura": 57356,
+      "columnas_desempeno": 81,
+      "columnas_lectura": 15
+    },
+    {
+      "archivo": "MAR SEGUNDO CICLO.xlsx",
+      "filas_validas": 4877,
+      "filas_invalidas": 0,
+      "cobertura": 13266,
+      "desempeno": 799722,
+      "lectura": 0,
+      "columnas_desempeno": 213,
+      "columnas_lectura": 0
+    }
+  ],
+  "invalid_rows": 148,
+  "period_totals": [
+    {
+      "Periodo": "Septiembre",
+      "Matrícula": 892911,
+      "Evaluados": 839751
+    },
+    {
+      "Periodo": "Noviembre",
+      "Matrícula": 871166,
+      "Evaluados": 825950
+    },
+    {
+      "Periodo": "Marzo",
+      "Matrícula": 877456,
+      "Evaluados": 832389
+    }
+  ],
+  "dictionary_size": 5320,
+  "cov_records": 83602,
+  "perf_records": 3348622,
+  "read_records": 162077
+}
