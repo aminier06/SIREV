@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>SIREV Primaria</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+  --azul-minerd:#003b71;
+  --azul-minerd-2:#005daa;
+  --azul-claro:#d9ecff;
+  --rojo:#c8102e;
+  --dorado:#f2a900;
+  --fondo:#f3f7fc;
+  --blanco:#ffffff;
+  --texto:#10233f;
+  --muted:#5c6f86;
+  --borde:#c8d8ea;
+  --sombra:0 18px 40px rgba(0,59,113,.14);
+  --radio:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(180deg,#f8fbff 0%,#eef5fc 100%);
+  color:var(--texto);
+  min-height:100vh;
+}
+.membrete{
+  background:
+    radial-gradient(circle at top right,rgba(0,93,170,.16),transparent 28rem),
+    linear-gradient(135deg,#ffffff 0%,#eef7ff 52%,#d9ecff 100%);
+  border-bottom:5px solid var(--azul-minerd);
+  box-shadow:0 10px 28px rgba(0,59,113,.10);
+}
+.header-inner{
+  max-width:1280px;
+  margin:0 auto;
+  padding:1.35rem 1.25rem 1rem;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:1.15rem;
+  align-items:center;
+}
+.logo-box{
+  width:92px;height:92px;border-radius:20px;
+  background:#fff;border:1px solid rgba(0,59,113,.16);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 24px rgba(0,59,113,.12);
+  overflow:hidden;
+}
+.logo-box img{max-width:86%;max-height:86%;object-fit:contain}
+.kicker{
+  color:var(--azul-minerd);
+  font-size:.92rem;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  margin-bottom:.15rem;
+}
+.titulo-linea1{
+  font-size:1.25rem;
+  font-weight:850;
+  color:var(--azul-minerd);
+  line-height:1.15;
+}
+.titulo-linea2{
+  font-size:2.15rem;
+  font-weight:950;
+  color:var(--azul-minerd);
+  line-height:1.06;
+  letter-spacing:-.025em;
+  margin:.15rem 0 .35rem;
+}
+.subtitulo-inst,.dependencia{
+  font-size:1rem;
+  color:#1f4f80;
+  font-weight:650;
+  line-height:1.35;
+}
+.dependencia{color:#0f2f55}
+.nav-wrap{
+  border-top:1px solid rgba(0,59,113,.12);
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(8px);
+}
+.acciones{
+  max-width:1280px;
+  margin:0 auto;
+  padding:.85rem 1.25rem;
+  display:flex;
+  gap:.7rem;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:.45rem;
+  font-weight:800;
+  font-size:.95rem;
+  padding:.72rem 1.05rem;
+  border-radius:13px;
+  cursor:pointer;
+  border:1px solid rgba(0,59,113,.18);
+  background:linear-gradient(135deg,var(--azul-minerd),var(--azul-minerd-2));
+  color:#fff;
+  box-shadow:0 8px 18px rgba(0,59,113,.18);
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;
+}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 12px 24px rgba(0,59,113,.24)}
+.btn.secondary{background:#fff;color:var(--azul-minerd);box-shadow:none}
+.dropdown{position:relative}
+.dropdown-content{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);left:0;
+  background:#fff;
+  min-width:280px;
+  border:1px solid var(--borde);
+  border-radius:15px;
+  box-shadow:var(--sombra);
+  overflow:hidden;
+  z-index:1000;
+}
+.dropdown-content.show{display:block;animation:fadeIn .14s ease}
+.dropdown-content button,.dropdown-content span{
+  display:block;width:100%;padding:.82rem .95rem;background:#fff;border:none;text-align:left;
+  font:inherit;font-weight:700;color:#173b61;cursor:pointer;
+}
+.dropdown-content button:hover{background:#eef6ff;color:var(--azul-minerd)}
+.dropdown-content span{color:#98a7b8;cursor:default}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.selector-actual{
+  margin-left:auto;
+  color:#173b61;
+  font-size:.92rem;
+  font-weight:750;
+  background:#fff;
+  border:1px solid var(--borde);
+  border-radius:999px;
+  padding:.55rem .85rem;
+}
+main{max-width:1480px;margin:0 auto;padding:1.4rem 1.25rem 1.6rem}
+.panel-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:1rem;
+  margin-bottom:.9rem;
+}
+.panel-title h2{font-size:1.25rem;color:var(--azul-minerd);letter-spacing:-.02em}
+.panel-title p{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+.current-badge{
+  background:#fff;border:1px solid var(--borde);border-radius:999px;
+  padding:.5rem .8rem;color:var(--azul-minerd);font-weight:800;font-size:.88rem;white-space:nowrap;
+}
+.report-container{
+  height:calc(100vh - 265px);
+  min-height:640px;
+  background:#fff;
+  border:1px solid var(--borde);
+  border-radius:var(--radio);
+  overflow:hidden;
+  box-shadow:var(--sombra);
+}
+iframe{width:100%;height:100%;border:none;background:#fff}
+.footer{
+  text-align:center;
+  font-size:.9rem;
+  color:#4b6078;
+  padding:0 1rem 1.2rem;
+}
+.footer strong{color:var(--azul-minerd)}
+@media(max-width:760px){
+  .header-inner{grid-template-columns:1fr;text-align:left}.logo-box{width:76px;height:76px}.titulo-linea2{font-size:1.7rem}.acciones{display:grid;grid-template-columns:1fr}.selector-actual{margin-left:0;text-align:center}.dropdown-content{position:static;margin-top:.45rem}.panel-title{display:block}.current-badge{display:inline-block;margin-top:.7rem}.report-container{height:70vh;min-height:520px}
+}
+</style>
+</head>
+<body>
+<header class="membrete">
+  <div class="header-inner">
+    <div class="logo-box" aria-label="Logo del Ministerio de Educación">
+      <img src="logominerd.jpeg" alt="Logo MINERD" onerror="this.style.display='none';this.parentElement.innerHTML='<strong style=&quot;color:#003b71;font-size:1.1rem&quot;>MINERD</strong>'">
+    </div>
+    <div>
+      <div class="kicker">Sistema de Resultados de Evaluaciones del Nivel Primario</div>
+      <div class="titulo-linea2">SIREV Primaria</div>
+      <div class="subtitulo-inst">Ministerio de Educación</div>
+      <div class="subtitulo-inst">Viceministerio de Servicios Técnicos y Pedagógicos</div>
+      <div class="dependencia">Dirección de Educación Primaria</div>
+    </div>
+  </div>
+
+  <div class="nav-wrap">
+    <div class="acciones">
+      <div class="dropdown">
+        <button class="btn" onclick="toggleMenu('menuAnio', event)">Año escolar ▼</button>
+        <div id="menuAnio" class="dropdown-content">
+          <button onclick="seleccionarAnio('2025-2026')">2025-2026</button>
+          <button onclick="seleccionarAnio('2026-2027')">2026-2027</button>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn" onclick="toggleMenu('menuDashboards', event)">Dashboards ▼</button>
+        <div id="menuDashboards" class="dropdown-content">
+          <button onclick="abrirDashboard('sirev')">Dashboard interactivo SIREV</button>
+          <button onclick="abrirDashboard('powerbi')">Informe Power BI</button>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn" onclick="toggleMenu('menuPruebas', event)">Pruebas y rúbricas ▼</button>
+        <div id="menuPruebas" class="dropdown-content">
+          <button onclick="abrirRecurso('pruebas','septiembre')">Septiembre</button>
+          <button onclick="abrirRecurso('pruebas','noviembre')">Noviembre</button>
+          <button onclick="abrirRecurso('pruebas','marzo')">Marzo</button>
+          <button onclick="abrirRecurso('pruebas','mayo')">Mayo</button>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn" onclick="toggleMenu('menuSistematizacion', event)">Sistematización ▼</button>
+        <div id="menuSistematizacion" class="dropdown-content">
+          <button onclick="abrirRecurso('sistematizacion','septiembre')">Septiembre</button>
+          <button onclick="abrirRecurso('sistematizacion','noviembre')">Noviembre</button>
+          <button onclick="abrirRecurso('sistematizacion','marzo')">Marzo</button>
+          <button onclick="abrirRecurso('sistematizacion','mayo')">Mayo</button>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn" onclick="toggleMenu('menuFormularios', event)">Formularios ▼</button>
+        <div id="menuFormularios" class="dropdown-content">
+          <button onclick="abrirFormulario('primerCiclo')">Primer ciclo</button>
+          <button onclick="abrirFormulario('segundoCiclo')">Segundo ciclo</button>
+        </div>
+      </div>
+
+      <div class="selector-actual">Año escolar: <span id="anioActualTexto">2025-2026</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="panel-title">
+    <div>
+      <h2 id="tituloVista">Dashboard interactivo SIREV</h2>
+      <p id="descripcionVista">Resultados consolidados de las evaluaciones diagnósticas y de seguimiento del Nivel Primario.</p>
+    </div>
+    <div class="current-badge" id="vistaActual">Dashboards · SIREV</div>
+  </div>
+
+  <div class="report-container">
+    <iframe id="visorInforme" src="dashboard_sirev_primaria.html" title="Dashboard SIREV Primaria"></iframe>
+  </div>
+</main>
+
+<footer class="footer">
+© 2026 Ministerio de Educación – Desarrollado por <strong>Aneudy Minier</strong>
+</footer>
+
+<script>
+const datosPorAnio = {
+  "2025-2026": {
+    dashboards: {
+      sirev: "dashboard_sirev_primaria.html",
+      powerbi: "https://app.powerbi.com/view?r=eyJrIjoiZWE0NjFhYWYtY2M5ZS00ZDQ4LWFiZDAtNmU1ZGZkYTVjNWViIiwidCI6IjY2ZTI4OThiLTJjMzUtNDMzZi1hNzUzLWJkNjRhY2EzOWFmYiIsImMiOjF9"
+    },
+    pruebas: {
+      septiembre: "https://drive.google.com/drive/folders/1DVgvr8SuIApyFKk2kQUaZjy2c736xGZh",
+      noviembre: "https://drive.google.com/drive/folders/1mHf3_gLi4ZIj_YLRPB0-CYh0b_Y1CMWV",
+      marzo: "https://drive.google.com/drive/folders/1JP1DCceZfuHuNL4FxIySqalPvCh36SAb",
+      mayo: ""
+    },
+    sistematizacion: {
+      septiembre: "https://lookerstudio.google.com/reporting/8b050392-1c17-4511-be16-64a07323885e",
+      noviembre: "https://lookerstudio.google.com/reporting/60bb48a6-a3df-45d9-ae1f-2a2272081fe4",
+      marzo: "https://lookerstudio.google.com/reporting/37283302-62a8-4a76-836d-2e484c186884",
+      mayo: ""
+    },
+    formularios: {
+      primerCiclo: "https://aminier06.github.io/formularioprimerciclo/",
+      segundoCiclo: "https://aminier06.github.io/formulariosegundociclo/"
+    }
+  },
+  "2026-2027": {
+    dashboards: { sirev: "", powerbi: "" },
+    pruebas: {},
+    sistematizacion: {},
+    formularios: {}
+  }
+};
+
+let anioSeleccionado = "2025-2026";
+
+function seleccionarAnio(anio) {
+  anioSeleccionado = anio;
+  document.getElementById("anioActualTexto").textContent = anio;
+  abrirDashboard('sirev', true);
+  cerrarMenus();
+}
+
+function abrirDashboard(tipo, desdeCambioAnio=false) {
+  const url = datosPorAnio[anioSeleccionado].dashboards?.[tipo];
+  const visor = document.getElementById("visorInforme");
+  if (!url) {
+    if (!desdeCambioAnio) alert("No hay dashboard disponible para este año escolar.");
+    visor.src = "about:blank";
+    actualizarRotulo("Dashboard no disponible", "Seleccione otro año escolar o cargue el recurso correspondiente.", "Dashboards");
+    cerrarMenus();
+    return;
+  }
+  visor.src = url;
+  if (tipo === 'sirev') {
+    actualizarRotulo("Dashboard interactivo SIREV", "Resultados consolidados de las evaluaciones diagnósticas y de seguimiento del Nivel Primario.", "Dashboards · SIREV");
+  } else {
+    actualizarRotulo("Informe Power BI", "Vista institucional publicada en Power BI.", "Dashboards · Power BI");
+  }
+  cerrarMenus();
+}
+
+function actualizarRotulo(titulo, descripcion, etiqueta) {
+  document.getElementById("tituloVista").textContent = titulo;
+  document.getElementById("descripcionVista").textContent = descripcion;
+  document.getElementById("vistaActual").textContent = etiqueta;
+}
+
+function abrirRecurso(tipo, mes) {
+  const url = datosPorAnio[anioSeleccionado][tipo]?.[mes];
+  if (url) window.open(url, "_blank");
+  else alert("Recurso no disponible para este año escolar.");
+  cerrarMenus();
+}
+
+function abrirFormulario(ciclo) {
+  const url = datosPorAnio[anioSeleccionado].formularios?.[ciclo];
+  if (url) window.open(url, "_blank");
+  else alert("Formulario no disponible.");
+  cerrarMenus();
+}
+
+function toggleMenu(id, e) {
+  e.stopPropagation();
+  const menu = document.getElementById(id);
+  cerrarMenus();
+  menu.classList.toggle("show");
+}
+function cerrarMenus() {
+  document.querySelectorAll(".dropdown-content").forEach(m => m.classList.remove("show"));
+}
+document.addEventListener("click", cerrarMenus);
+</script>
+</body>
+</html>
