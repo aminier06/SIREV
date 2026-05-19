@@ -6,373 +6,360 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root {
-    --azul-minerd: #003b71;
-    --azul-minerd-2: #005daa;
-    --azul-claro: #dceeff;
-    --azul-muy-claro: #eef6ff;
-    --rojo-minerd: #c8102e;
-    --dorado: #f2a900;
-    --gris-fondo: #f3f6f9;
-    --gris-borde: #c8d8ea;
-    --texto: #1f2937;
-    --texto-suave: #52667a;
-    --blanco: #ffffff;
-    --sombra: 0 10px 28px rgba(0, 59, 113, 0.12);
-    --radio: 14px;
+:root{
+    --azul:#003b71;
+    --azul-2:#005daa;
+    --azul-3:#0b73c8;
+    --azul-claro:#e9f4ff;
+    --azul-suave:#f5faff;
+    --rojo:#c8102e;
+    --dorado:#f2a900;
+    --texto:#10233f;
+    --texto-2:#4a6078;
+    --borde:#c9d9ea;
+    --fondo:#f4f8fc;
+    --blanco:#ffffff;
+    --sombra:0 14px 36px rgba(0,59,113,.14);
+    --sombra-suave:0 8px 22px rgba(0,59,113,.09);
+    --radio:18px;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+    min-height:100vh;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+        radial-gradient(circle at top left,rgba(0,93,170,.13),transparent 34rem),
+        linear-gradient(180deg,#f8fbff 0%,#edf4fb 100%);
+    color:var(--texto);
+}
+button{font:inherit}
+
+/* =============================
+   ENCABEZADO
+   ============================= */
+.site-header{
+    background:linear-gradient(135deg,#ffffff 0%,#f2f8ff 50%,#dfefff 100%);
+    border-bottom:1px solid rgba(0,59,113,.14);
+    box-shadow:0 8px 24px rgba(0,59,113,.10);
+}
+.header-inner{
+    max-width:1480px;
+    margin:0 auto;
+    padding:1.25rem 1.25rem 1rem;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:1.15rem;
+    align-items:center;
+}
+.logo-card{
+    width:86px;
+    height:86px;
+    border-radius:22px;
+    background:linear-gradient(145deg,#fff,#edf6ff);
+    border:1px solid rgba(0,59,113,.16);
+    box-shadow:var(--sombra-suave);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+.logo-card img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    padding:9px;
+}
+.brand-kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:.45rem;
+    color:var(--azul-2);
+    font-size:.84rem;
+    font-weight:850;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin-bottom:.18rem;
+}
+.brand-kicker::before{
+    content:"";
+    width:9px;
+    height:9px;
+    background:var(--rojo);
+    border-radius:50%;
+    box-shadow:0 0 0 4px rgba(200,16,46,.10);
+}
+.title-main{
+    font-size:clamp(2.1rem,4.1vw,3.35rem);
+    line-height:.98;
+    font-weight:950;
+    letter-spacing:-.055em;
+    color:var(--azul);
+}
+.title-sub{
+    margin-top:.42rem;
+    color:#0b4f88;
+    font-size:clamp(.95rem,1.5vw,1.1rem);
+    font-weight:750;
+    line-height:1.35;
+}
+.title-sub span{display:block;color:#10233f;font-weight:700}
+.year-pill{
+    justify-self:end;
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    background:#fff;
+    color:var(--azul);
+    border:1px solid rgba(0,59,113,.16);
+    padding:.68rem 1rem;
+    border-radius:999px;
+    font-size:.92rem;
+    font-weight:850;
+    box-shadow:var(--sombra-suave);
+    white-space:nowrap;
+}
+.year-pill::before{
+    content:"Año escolar";
+    color:var(--texto-2);
+    font-weight:700;
 }
 
-html {
-    scroll-behavior: smooth;
+/* =============================
+   NAVEGACIÓN
+   ============================= */
+.nav-band{
+    background:linear-gradient(90deg,var(--azul),#004f92);
+    border-top:1px solid rgba(255,255,255,.24);
 }
-
-body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: linear-gradient(180deg, #f8fbff 0%, #edf4fb 100%);
-    color: var(--texto);
-    min-height: 100vh;
+.nav-inner{
+    max-width:1480px;
+    margin:0 auto;
+    padding:.9rem 1.25rem;
+    display:flex;
+    align-items:center;
+    gap:.7rem;
+    flex-wrap:wrap;
 }
-
-/* ============================
-   ENCABEZADO INSTITUCIONAL
-   ============================ */
-header.membrete {
-    background: linear-gradient(135deg, #ffffff 0%, #edf6ff 48%, #dceeff 100%);
-    border-bottom: 5px solid var(--azul-minerd);
-    box-shadow: var(--sombra);
+.dropdown{position:relative}
+.nav-btn{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    padding:.74rem 1.05rem;
+    border-radius:14px;
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.11);
+    color:#fff;
+    font-weight:850;
+    box-shadow:0 8px 22px rgba(0,23,51,.16);
+    transition:transform .12s ease,background .12s ease,border-color .12s ease;
 }
-
-.header-inner {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 1.35rem 1rem 1rem;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 1.1rem;
-    align-items: center;
+.nav-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.42)}
+.nav-btn.primary{background:#fff;color:var(--azul);border-color:#fff}
+.nav-btn .chev{font-size:.85rem;opacity:.86}
+.dropdown-content{
+    display:none;
+    position:absolute;
+    top:calc(100% + 8px);
+    left:0;
+    min-width:290px;
+    background:#fff;
+    border:1px solid var(--borde);
+    border-radius:16px;
+    box-shadow:0 18px 44px rgba(0,43,84,.20);
+    overflow:hidden;
+    z-index:1000;
 }
-
-.logo-box {
-    width: 92px;
-    height: 92px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.75);
-    border: 1px solid rgba(0,59,113,0.16);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 59, 113, 0.10);
-}
-
-.logo-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 8px;
-}
-
-.titulo-sistema {
-    font-weight: 800;
-    color: var(--azul-minerd);
-    line-height: 1.12;
-}
-
-.titulo-linea1 {
-    font-size: clamp(1.1rem, 2.2vw, 1.48rem);
-    letter-spacing: -0.02em;
-}
-
-.titulo-linea2 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 950;
-    letter-spacing: -0.04em;
-    margin-top: 0.15rem;
-}
-
-.subtitulo-inst {
-    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
-    font-weight: 700;
-    color: var(--azul-minerd-2);
-    margin-top: 0.1rem;
-}
-
-.dependencia {
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    font-weight: 700;
-    color: #0f2845;
-    margin-top: 0.1rem;
-}
-
-.acciones-wrap {
-    border-top: 1px solid rgba(0,59,113,0.12);
-    background: rgba(255,255,255,0.50);
-}
-
-.acciones {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0.95rem 1rem;
-    display: flex;
-    gap: 0.7rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.btn {
-    font-weight: 800;
-    font-size: 0.94rem;
-    padding: 0.76rem 1.08rem;
-    border-radius: 12px;
-    cursor: pointer;
-    border: 1px solid var(--azul-minerd);
-    background: linear-gradient(135deg, var(--azul-minerd), var(--azul-minerd-2));
-    color: var(--blanco);
-    min-height: 44px;
-    box-shadow: 0 8px 18px rgba(0,59,113,0.14);
-    transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.05);
-    box-shadow: 0 12px 22px rgba(0,59,113,0.18);
-}
-
-.btn.secondary {
-    background: #ffffff;
-    color: var(--azul-minerd);
-    border-color: var(--gris-borde);
-    box-shadow: none;
-}
-
-.dropdown {
-    position: relative;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background: #fff;
-    min-width: 280px;
-    border-radius: 12px;
-    box-shadow: 0 16px 35px rgba(0,59,113,0.18);
-    margin-top: 8px;
-    z-index: 1000;
-    overflow: hidden;
-    border: 1px solid var(--gris-borde);
-}
-
-.dropdown-content.show {
-    display: block;
-}
-
+.dropdown-content.show{display:block}
 .dropdown-content button,
-.dropdown-content span {
-    display: block;
-    width: 100%;
-    padding: 12px 14px;
-    background: #fff;
-    border: none;
-    text-align: left;
-    font: inherit;
-    font-weight: 700;
-    color: var(--texto);
-    cursor: pointer;
-    border-bottom: 1px solid #edf2f7;
+.dropdown-content span{
+    display:flex;
+    width:100%;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:13px 15px;
+    border:none;
+    background:#fff;
+    color:var(--texto);
+    text-align:left;
+    cursor:pointer;
+    font-weight:750;
+    border-bottom:1px solid #edf2f7;
+}
+.dropdown-content button:last-child,.dropdown-content span:last-child{border-bottom:0}
+.dropdown-content button:hover{background:var(--azul-claro);color:var(--azul)}
+.dropdown-content span{color:#98a6b5;cursor:default}
+.nav-spacer{flex:1}
+.quick-note{
+    color:#eaf5ff;
+    font-size:.88rem;
+    font-weight:700;
+    opacity:.92;
+    white-space:nowrap;
 }
 
-.dropdown-content button:last-child,
-.dropdown-content span:last-child {
-    border-bottom: none;
+/* =============================
+   MAIN
+   ============================= */
+main{
+    max-width:1480px;
+    margin:0 auto;
+    padding:1.15rem 1.25rem 1.6rem;
 }
-
-.dropdown-content button:hover {
-    background: var(--azul-muy-claro);
-    color: var(--azul-minerd);
+.resource-card{
+    background:#fff;
+    border:1px solid var(--borde);
+    border-radius:var(--radio);
+    box-shadow:var(--sombra-suave);
+    margin-bottom:1rem;
+    overflow:hidden;
 }
-
-.dropdown-content span {
-    color: #9ca3af;
-    cursor: default;
+.resource-head{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:1rem;
+    align-items:center;
+    padding:1rem 1.1rem;
+    border-left:6px solid var(--rojo);
 }
-
-.selector-actual {
-    margin-left: auto;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: var(--azul-minerd);
-    background: rgba(255,255,255,0.75);
-    border: 1px solid rgba(0,59,113,0.14);
-    padding: 0.62rem 0.85rem;
-    border-radius: 999px;
+.resource-title-wrap{min-width:0}
+.resource-eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:.42rem;
+    color:var(--azul-2);
+    font-size:.78rem;
+    font-weight:850;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-bottom:.2rem;
 }
-
-/* ============================
-   CONTENIDO PRINCIPAL
-   ============================ */
-main {
-    max-width: 1500px;
-    margin: 0 auto;
-    padding: 1.4rem 1rem 1.6rem;
+.resource-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dorado)}
+.resource-head h2{
+    color:var(--azul);
+    font-size:1.12rem;
+    font-weight:900;
+    letter-spacing:-.015em;
 }
-
-.panel-info {
-    background: #ffffff;
-    border: 1px solid var(--gris-borde);
-    border-radius: var(--radio);
-    box-shadow: var(--sombra);
-    padding: 1rem 1.15rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+.resource-head p{
+    margin-top:.25rem;
+    color:var(--texto-2);
+    font-size:.94rem;
+    line-height:1.4;
 }
-
-.panel-info h2 {
-    font-size: 1.05rem;
-    color: var(--azul-minerd);
-    margin-bottom: 0.2rem;
+.status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.48rem;
+    padding:.64rem .86rem;
+    border-radius:999px;
+    background:var(--azul-claro);
+    color:var(--azul);
+    border:1px solid var(--borde);
+    font-size:.88rem;
+    font-weight:850;
+    white-space:nowrap;
 }
-
-.panel-info p {
-    font-size: 0.92rem;
-    color: var(--texto-suave);
+.status-pill::before{content:"";width:8px;height:8px;background:var(--rojo);border-radius:50%}
+.report-container{
+    width:100%;
+    min-height:72vh;
+    background:#fff;
+    border-radius:var(--radio);
+    overflow:hidden;
+    box-shadow:var(--sombra);
+    border:1px solid var(--borde);
+    position:relative;
 }
-
-.estado-recurso {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    background: var(--azul-muy-claro);
-    color: var(--azul-minerd);
-    border: 1px solid var(--gris-borde);
-    padding: 0.55rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.88rem;
-    font-weight: 800;
-    white-space: nowrap;
+.report-container::before{
+    content:"";
+    position:absolute;
+    inset:0 0 auto 0;
+    height:4px;
+    background:linear-gradient(90deg,var(--azul),var(--rojo),var(--dorado));
+    z-index:2;
 }
-
-.estado-recurso::before {
-    content: "●";
-    color: var(--rojo-minerd);
-    font-size: 0.75rem;
+iframe{
+    width:100%;
+    height:78vh;
+    min-height:680px;
+    border:none;
+    display:block;
+    background:#fff;
 }
-
-.report-container {
-    width: 100%;
-    min-height: 72vh;
-    background: #fff;
-    border-radius: var(--radio);
-    overflow: hidden;
-    box-shadow: var(--sombra);
-    border: 1px solid var(--gris-borde);
+.footer{
+    text-align:center;
+    color:#52667a;
+    font-size:.9rem;
+    margin:1.25rem 0 .6rem;
 }
+.footer strong{color:var(--azul)}
 
-iframe {
-    width: 100%;
-    height: 78vh;
-    min-height: 680px;
-    border: none;
-    display: block;
-    background: #fff;
+@media(max-width:900px){
+    .header-inner{grid-template-columns:auto 1fr;align-items:center}
+    .year-pill{grid-column:1 / -1;justify-self:start}
+    .nav-inner{display:grid;grid-template-columns:1fr;gap:.6rem}
+    .dropdown,.nav-btn{width:100%}
+    .nav-btn{justify-content:space-between}
+    .nav-spacer,.quick-note{display:none}
+    .resource-head{grid-template-columns:1fr}
+    .status-pill{justify-self:start}
+    iframe{min-height:640px;height:75vh}
 }
-
-.footer {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #4b5563;
-    margin: 1.2rem 0 1rem;
-}
-
-@media (max-width: 800px) {
-    .header-inner {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    .logo-box {
-        margin: 0 auto;
-        width: 76px;
-        height: 76px;
-    }
-
-    .acciones {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
-
-    .dropdown,
-    .btn {
-        width: 100%;
-    }
-
-    .selector-actual {
-        margin-left: 0;
-        text-align: center;
-        justify-content: center;
-    }
-
-    iframe {
-        min-height: 620px;
-        height: 75vh;
-    }
+@media(max-width:560px){
+    .header-inner{grid-template-columns:1fr;text-align:center}
+    .logo-card{margin:0 auto;width:76px;height:76px}
+    .brand-kicker{justify-content:center}
+    .year-pill{justify-self:center}
+    main{padding:.9rem .8rem 1.3rem}
 }
 </style>
 </head>
 
 <body>
-
-<header class="membrete">
+<header class="site-header">
     <div class="header-inner">
-        <div class="logo-box" aria-label="Logo del Ministerio de Educación">
+        <div class="logo-card" aria-label="Logo del Ministerio de Educación">
             <img src="logominerd.jpeg" alt="Logo del Ministerio de Educación" onerror="this.parentElement.style.display='none'">
         </div>
 
-        <div>
-            <div class="titulo-sistema">
-                <div class="titulo-linea1">Sistema de Resultados de Evaluaciones del Nivel Primario</div>
-                <div class="titulo-linea2">SIREV Primaria</div>
+        <div class="brand-block">
+            <div class="brand-kicker">Sistema de Resultados de Evaluaciones del Nivel Primario</div>
+            <h1 class="title-main">SIREV Primaria</h1>
+            <div class="title-sub">
+                Ministerio de Educación · Viceministerio de Servicios Técnicos y Pedagógicos
+                <span>Dirección de Educación Primaria</span>
             </div>
-
-            <div class="subtitulo-inst">Ministerio de Educación</div>
-            <div class="subtitulo-inst">Viceministerio de Servicios Técnicos y Pedagógicos</div>
-            <div class="dependencia">Dirección de Educación Primaria</div>
         </div>
+
+        <div class="year-pill"><span id="anioActualTexto">2025-2026</span></div>
     </div>
 
-    <div class="acciones-wrap">
-        <div class="acciones">
-            <!-- AÑO ESCOLAR -->
+    <nav class="nav-band" aria-label="Navegación principal de SIREV Primaria">
+        <div class="nav-inner">
             <div class="dropdown">
-                <button class="btn" onclick="toggleMenu('menuAnio', event)">Año escolar ▼</button>
+                <button class="nav-btn" onclick="toggleMenu('menuAnio', event)">Año escolar <span class="chev">▼</span></button>
                 <div id="menuAnio" class="dropdown-content">
                     <button onclick="seleccionarAnio('2025-2026')">2025-2026</button>
                     <button onclick="seleccionarAnio('2026-2027')">2026-2027</button>
                 </div>
             </div>
 
-            <!-- DASHBOARDS -->
             <div class="dropdown">
-                <button class="btn" onclick="toggleMenu('menuDashboards', event)">Dashboards ▼</button>
+                <button class="nav-btn primary" onclick="toggleMenu('menuDashboards', event)">Dashboards <span class="chev">▼</span></button>
                 <div id="menuDashboards" class="dropdown-content">
                     <button onclick="abrirDashboard('sirevInteractivo')">Dashboard interactivo SIREV</button>
                     <button onclick="abrirDashboard('powerbi')">Informe Power BI</button>
                 </div>
             </div>
 
-            <!-- PRUEBAS -->
             <div class="dropdown">
-                <button class="btn" onclick="toggleMenu('menuPruebas', event)">Pruebas y rúbricas ▼</button>
+                <button class="nav-btn" onclick="toggleMenu('menuPruebas', event)">Pruebas y rúbricas <span class="chev">▼</span></button>
                 <div id="menuPruebas" class="dropdown-content">
                     <button onclick="abrirRecurso('pruebas','septiembre')">Septiembre</button>
                     <button onclick="abrirRecurso('pruebas','noviembre')">Noviembre</button>
@@ -381,9 +368,8 @@ iframe {
                 </div>
             </div>
 
-            <!-- SISTEMATIZACIÓN -->
             <div class="dropdown">
-                <button class="btn" onclick="toggleMenu('menuSistematizacion', event)">Sistematización ▼</button>
+                <button class="nav-btn" onclick="toggleMenu('menuSistematizacion', event)">Sistematización <span class="chev">▼</span></button>
                 <div id="menuSistematizacion" class="dropdown-content">
                     <button onclick="abrirRecurso('sistematizacion','septiembre')">Septiembre</button>
                     <button onclick="abrirRecurso('sistematizacion','noviembre')">Noviembre</button>
@@ -392,33 +378,34 @@ iframe {
                 </div>
             </div>
 
-            <!-- FORMULARIOS -->
             <div class="dropdown">
-                <button class="btn" onclick="toggleMenu('menuFormularios', event)">Formularios ▼</button>
+                <button class="nav-btn" onclick="toggleMenu('menuFormularios', event)">Formularios <span class="chev">▼</span></button>
                 <div id="menuFormularios" class="dropdown-content">
                     <button onclick="abrirFormulario('primerCiclo')">Primer ciclo</button>
                     <button onclick="abrirFormulario('segundoCiclo')">Segundo ciclo</button>
                 </div>
             </div>
 
-            <div class="selector-actual">
-                Año escolar: <span id="anioActualTexto">2025-2026</span>
-            </div>
+            <div class="nav-spacer"></div>
+            <div class="quick-note" id="quickNote">Resultados · evaluaciones diagnósticas y de seguimiento</div>
         </div>
-    </div>
+    </nav>
 </header>
 
 <main>
-    <section class="panel-info">
-        <div>
-            <h2 id="tituloRecurso">Informe Power BI</h2>
-            <p id="descripcionRecurso">Consulta general de resultados de evaluaciones del Nivel Primario.</p>
+    <section class="resource-card" aria-live="polite">
+        <div class="resource-head">
+            <div class="resource-title-wrap">
+                <div class="resource-eyebrow" id="tipoRecurso">Consulta activa</div>
+                <h2 id="tituloRecurso">Dashboard interactivo SIREV</h2>
+                <p id="descripcionRecurso">Análisis interactivo de resultados por periodo, regional, distrito, centro, grado, asignatura, competencia e indicador.</p>
+            </div>
+            <div class="status-pill" id="estadoRecurso">Año escolar 2025-2026</div>
         </div>
-        <div class="estado-recurso" id="estadoRecurso">Año escolar 2025-2026</div>
     </section>
 
     <div class="report-container">
-        <iframe id="visorInforme" title="Visor SIREV Primaria" src="https://app.powerbi.com/view?r=eyJrIjoiZWE0NjFhYWYtY2M5ZS00ZDQ4LWFiZDAtNmU1ZGZkYTVjNWViIiwidCI6IjY2ZTI4OThiLTJjMzUtNDMzZi1hNzUzLWJkNjRhY2EzOWFmYiIsImMiOjF9"></iframe>
+        <iframe id="visorInforme" title="Visor SIREV Primaria" src="dashboard_sirev_primaria.html"></iframe>
     </div>
 </main>
 
@@ -448,7 +435,6 @@ const datosPorAnio = {
             segundoCiclo: "https://aminier06.github.io/formulariosegundociclo/"
         }
     },
-
     "2026-2027": {
         informe: "",
         dashboard: "",
@@ -459,18 +445,15 @@ const datosPorAnio = {
 };
 
 let anioSeleccionado = "2025-2026";
-let dashboardActual = "powerbi";
+let dashboardActual = "sirevInteractivo";
 
 function seleccionarAnio(anio) {
     anioSeleccionado = anio;
     document.getElementById("anioActualTexto").textContent = anio;
     document.getElementById("estadoRecurso").textContent = "Año escolar " + anio;
 
-    if (dashboardActual === "sirevInteractivo") {
-        abrirDashboard("sirevInteractivo");
-    } else {
-        abrirDashboard("powerbi");
-    }
+    if (dashboardActual === "sirevInteractivo") abrirDashboard("sirevInteractivo");
+    else abrirDashboard("powerbi");
 
     cerrarMenus();
 }
@@ -481,24 +464,28 @@ function abrirDashboard(tipo) {
     const titulo = document.getElementById("tituloRecurso");
     const descripcion = document.getElementById("descripcionRecurso");
     const estado = document.getElementById("estadoRecurso");
-
+    const tipoRecurso = document.getElementById("tipoRecurso");
+    const quickNote = document.getElementById("quickNote");
     let url = "";
 
     if (tipo === "sirevInteractivo") {
         url = datosPorAnio[anioSeleccionado].dashboard;
+        tipoRecurso.textContent = "Dashboard activo";
         titulo.textContent = "Dashboard interactivo SIREV";
         descripcion.textContent = "Análisis interactivo de resultados por periodo, regional, distrito, centro, grado, asignatura, competencia e indicador.";
+        quickNote.textContent = "Dashboard interactivo · datos consolidados";
     } else {
         url = datosPorAnio[anioSeleccionado].informe;
+        tipoRecurso.textContent = "Informe activo";
         titulo.textContent = "Informe Power BI";
         descripcion.textContent = "Consulta general de resultados de evaluaciones del Nivel Primario.";
+        quickNote.textContent = "Informe general · Power BI";
     }
 
     estado.textContent = "Año escolar " + anioSeleccionado;
 
-    if (url) {
-        visor.src = url;
-    } else {
+    if (url) visor.src = url;
+    else {
         visor.src = "about:blank";
         alert("Este recurso no está disponible todavía para el año escolar seleccionado.");
     }
@@ -508,25 +495,15 @@ function abrirDashboard(tipo) {
 
 function abrirRecurso(tipo, mes) {
     const url = datosPorAnio[anioSeleccionado][tipo]?.[mes];
-
-    if (url) {
-        window.open(url, "_blank");
-    } else {
-        alert("Recurso no disponible para este año escolar.");
-    }
-
+    if (url) window.open(url, "_blank");
+    else alert("Recurso no disponible para este año escolar.");
     cerrarMenus();
 }
 
 function abrirFormulario(ciclo) {
     const url = datosPorAnio[anioSeleccionado].formularios?.[ciclo];
-
-    if (url) {
-        window.open(url, "_blank");
-    } else {
-        alert("Formulario no disponible para este año escolar.");
-    }
-
+    if (url) window.open(url, "_blank");
+    else alert("Formulario no disponible para este año escolar.");
     cerrarMenus();
 }
 
@@ -544,6 +521,5 @@ function cerrarMenus() {
 
 document.addEventListener("click", cerrarMenus);
 </script>
-
 </body>
 </html>
