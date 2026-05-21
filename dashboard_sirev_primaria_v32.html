@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard SIREV Primaria v29</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="catalogo_centros_primaria_v32.js?v=32"></script>
+<script src="dashboard_data_clean_v32_part1.js?v=32"></script>
+<script src="dashboard_data_clean_v32_part2.js?v=32"></script>
+<style>
+:root{--azul:#003B71;--azul2:#005DAA;--rojo:#1E96F2;--dorado:#20279A;--verde:#E8693B;--cyan:#790987;--fondo:#f3f7fc;--panel:#fff;--borde:#c8d8ea;--texto:#10233f;--muted:#53657d;--shadow:0 12px 28px rgba(0,59,113,.10);--r:18px}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#f9fcff 0%,#eef4fb 100%);color:var(--texto);font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45} button,select,input{font-family:inherit} header{position:relative;z-index:30;background:linear-gradient(135deg,#fff 0%,#f4f8ff 52%,#e6f0fb 100%);border-bottom:4px solid var(--azul);box-shadow:0 10px 28px rgba(0,59,113,.13);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}.title h1{margin:0;color:var(--azul);font-size:22px;line-height:1.1}.sub{font-size:13px;color:#49627f;margin-top:3px}.top-filters{display:grid;grid-template-columns:repeat(2,minmax(190px,1fr));gap:8px 12px;min-width:440px}.tf label, aside label{display:block;color:var(--azul);text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:.06em;margin-bottom:4px}select,input{width:100%;background:#fff;color:var(--texto);border:1px solid #b8cce2;border-radius:12px;padding:9px 11px;outline:none}select:focus,input:focus{border-color:var(--azul2);box-shadow:0 0 0 3px rgba(0,93,170,.15)}.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:calc(100vh - 78px)}aside{position:relative;top:auto;height:auto;overflow:visible;background:linear-gradient(180deg,#fff,#f0f6fd);border-right:1px solid var(--borde);box-shadow:8px 0 22px rgba(0,59,113,.06);padding:18px 14px}aside label{margin-top:14px}.center-filter{position:relative}.suggestions{display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:#fff;border:1px solid var(--borde);border-radius:12px;box-shadow:0 12px 28px rgba(0,59,113,.18);max-height:260px;overflow:auto}.suggestions.open{display:block}.suggestion{padding:9px 10px;border-bottom:1px solid #d8e4f1;cursor:pointer}.suggestion:hover{background:#eef4fb}.suggestion b{color:var(--azul)}.suggestion small{display:block;color:var(--muted);margin-top:2px}main{padding:18px;min-width:0}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;position:static;z-index:20;background:linear-gradient(180deg,rgba(243,247,252,.98),rgba(243,247,252,.86));padding:8px 0}.tab{background:#fff;border:1px solid var(--borde);color:#31516f;border-radius:14px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(0,59,113,.08)}.tab.active{background:linear-gradient(135deg,var(--azul),var(--azul2));color:#fff;border-color:var(--azul)}.pane{display:none}.pane.active{display:block}.section,.card-block{background:#fff;border:1px solid var(--borde);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}.section h2,.card-block h3{margin:0;background:linear-gradient(90deg,var(--azul),var(--azul2));color:#fff;padding:13px 16px;font-size:15px}.body{padding:12px 14px 10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.coverage{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:14px}.cov-card{background:linear-gradient(145deg,#fff,#f4f8ff);border:1px solid var(--borde);border-radius:16px;padding:14px 16px;min-height:88px;border-left:5px solid var(--azul)}.cov-card small{display:block;color:var(--azul);text-transform:uppercase;font-size:11px;font-weight:850;margin-bottom:6px}.cov-card .val{font-size:27px;font-weight:900;color:var(--azul);line-height:1.05}.cov-card .det{font-size:12px;color:var(--muted);margin-top:6px}.donut-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}canvas{max-width:100%;height:250px!important;display:block}.donut-row canvas{height:240px!important}.chart-empty{padding:28px;text-align:center;color:var(--muted);font-weight:700}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 10px;border-bottom:1px solid #d8e4f1;text-align:left;white-space:nowrap}th{position:sticky;top:0;background:var(--azul);color:#fff;text-transform:uppercase;font-size:11px;z-index:1}tr:hover td{background:#eef4fb}.tablewrap{max-height:560px;overflow:auto}.right{text-align:center}.red{color:var(--rojo)}.amber{color:var(--dorado)}.green{color:var(--verde)}.cyan{color:var(--cyan)}.buttons{display:grid;gap:9px;margin-top:16px}button.secondary{background:#fff;border:1px solid var(--borde);color:var(--azul);border-radius:12px;padding:10px 13px;font-weight:800;cursor:pointer}.loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f7fc;z-index:2000;color:var(--azul);font-size:18px;font-weight:800}.matrix-shell{width:100%;overflow-x:hidden;border:1px solid var(--borde);border-radius:16px;background:#fff}.matrix-row{display:grid;align-items:stretch;border-bottom:1px solid #d8e4f1}.matrix-perf .matrix-row{grid-template-columns:minmax(280px,1.7fr) minmax(110px,.7fr) repeat(3,minmax(110px,.6fr))}.matrix-read .matrix-row{grid-template-columns:minmax(230px,1.5fr) minmax(90px,.55fr) repeat(5,minmax(82px,.5fr))}.matrix-row>div{padding:9px 10px;border-left:1px solid #d8e4f1;min-width:0;overflow:hidden;text-overflow:ellipsis}.matrix-row>div:first-child{border-left:0}.matrix-head{background:var(--azul);color:#fff;font-size:10px;text-transform:uppercase;font-weight:850}.matrix-head>div{cursor:pointer;user-select:none;align-items:center;gap:6px}.matrix-head>div:hover{background:#0064ad}.matrix-head .sortmark{font-size:10px;margin-left:4px;opacity:.9}.matrix-head .unsorted{opacity:.45}.mx{margin:0;border:0}.mx summary{list-style:none;cursor:pointer}.mx summary::-webkit-details-marker{display:none}.mx-reg>summary{background:#e4effa;color:var(--azul);font-weight:850}.mx-dist>summary{background:#f4f8ff;color:#1b385f;font-weight:760}.mx-center{background:#fff;color:var(--texto)}.inst:before{content:'▸';margin-right:6px;color:var(--azul)}details[open]>summary .inst:before{content:'▾'}.mx-center .inst:before{content:''}.mx-dist .inst{padding-left:22px}.mx-center .inst{padding-left:44px;font-size:11.5px}.metric{text-align:right}.metric .num{font-weight:850;color:var(--azul)}.bar{height:6px;background:#d6e3f2;border-radius:999px;overflow:hidden;margin-top:4px}.fill{height:100%;border-radius:999px}.status{border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;min-width:112px}.high{background:rgba(46,125,50,.13);color:var(--verde)}.mid{background:rgba(242,169,0,.18);color:#8a6100}.low{background:rgba(200,16,46,.12);color:var(--rojo)}.note{font-size:12px;color:var(--muted);margin:6px 0 14px}@media(max-width:980px){header{display:block}.top-filters{min-width:0;margin-top:12px}.layout{grid-template-columns:1fr}aside{position:relative;top:0;height:auto}.grid2,.donut-row{grid-template-columns:1fr}.coverage{grid-template-columns:repeat(2,minmax(0,1fr))}.tabs{position:static}.matrix-read .matrix-row{grid-template-columns:minmax(180px,1.4fr) minmax(70px,.5fr) repeat(5,minmax(65px,.45fr));font-size:11px}}
+
+/* v8: Brechas por prioridad, no por mejor desempeño */
+#brechas table th, #brechas table td { vertical-align: middle; }
+#brechas table th:not(:first-child), #brechas table td:not(:first-child) { text-align: center !important; }
+#brechas .note {
+  background:#fff8e8; border:1px solid #f2c46d; color:#5f4100;
+  padding:10px 14px; border-radius:14px; margin:0 0 14px; font-size:13px;
+}
+#brechas .status.low{background:#fde2e2;color:#8a1111;border:1px solid #f4b5b5}
+#brechas .status.mid{background:#fff2cc;color:#7a5200;border:1px solid #f5d47c}
+#brechas .status.high{background:#ddf3df;color:#186d25;border:1px solid #b8dfbd}
+
+
+
+/* v10: tablas de Brechas compactas, visibles sin desplazamiento horizontal */
+#brechas .section { overflow: hidden; }
+#brechas .body.tablewrap { overflow-x: hidden; overflow-y: auto; padding: 10px 12px; }
+#brechas table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+#brechas th, #brechas td { white-space: normal !important; line-height: 1.22; vertical-align: middle; padding: 10px 8px; }
+#brechas th { text-align: center; }
+#brechas th:first-child, #brechas td:first-child { text-align: left !important; width: 38%; }
+#brechas th:nth-child(2), #brechas td:nth-child(2) { width: 10%; }
+#brechas th:nth-child(3), #brechas td:nth-child(3) { width: 9%; }
+#brechas th:nth-child(4), #brechas td:nth-child(4),
+#brechas th:nth-child(5), #brechas td:nth-child(5),
+#brechas th:nth-child(6), #brechas td:nth-child(6) { width: 10.5%; }
+#brechas th:nth-child(7), #brechas td:nth-child(7) { width: 11.5%; }
+#brechas td.num { text-align: center !important; font-variant-numeric: tabular-nums; }
+#brechas .rank-name { display: flex; gap: 4px; align-items: baseline; min-width: 0; }
+#brechas .rank-name span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#brechas .status { min-width: 0; width: 100%; max-width: 132px; padding: 5px 6px; font-size: 10.5px; white-space: normal; text-align: center; }
+
+#brechas th.sortable { cursor: pointer; user-select: none; }
+#brechas th.sortable:hover { background:#0064ad; }
+#brechas th .sortmark { font-size:10px; margin-left:4px; opacity:.9; }
+#brechas th .sortmark.unsorted { opacity:.45; }
+
+@media(max-width:1100px){
+  #brechas table{font-size:11px;}
+  #brechas th,#brechas td{padding:8px 5px;}
+  #brechas .status{font-size:10px;}
+  #brechas th:first-child,#brechas td:first-child{width:34%;}
+  #brechas th:nth-child(7),#brechas td:nth-child(7){width:14%;}
+}
+
+
+
+/* v15: filtros de periodo tipo botón y paleta más estética para gráficos */
+.header-controls{display:flex;align-items:flex-start;justify-content:flex-end;gap:18px;flex-wrap:wrap}.period-toggle{min-width:360px}.period-toggle label{display:block;color:var(--azul);text-transform:uppercase;font-size:10px;font-weight:850;letter-spacing:.06em;margin-bottom:6px}.period-buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.period-btn{appearance:none;border:1px solid #b8cce2;background:#fff;color:#31516f;border-radius:999px;padding:9px 14px;font-weight:850;cursor:pointer;box-shadow:0 4px 12px rgba(0,59,113,.07);transition:.15s}.period-btn:hover{border-color:var(--azul2);transform:translateY(-1px)}.period-btn.active{background:linear-gradient(135deg,var(--azul),var(--azul2));border-color:var(--azul);color:#fff;box-shadow:0 8px 18px rgba(0,93,170,.22)}.period-btn.all{font-weight:900}.chart-note{font-size:12px;color:var(--muted);margin-top:6px}.section h2{letter-spacing:-.01em}canvas{background:#fff;border-radius:12px}.legend-soft{color:var(--muted)}@media(max-width:1180px){.header-controls{justify-content:flex-start}.period-toggle{min-width:0;width:100%}.period-buttons{justify-content:flex-start}.top-filters{min-width:0}}
+
+/* v16: paleta más sobria y barras horizontales al 100% en evolución */
+.evol-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.evol-grid .section{margin-bottom:0}.section.subtle h2{background:linear-gradient(90deg,#0B4F86,#136AA9)}
+@media(max-width:980px){.evol-grid{grid-template-columns:1fr}}
+
+
+/* v17: encabezado superior más compacto y equilibrado */
+.dash-header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  display:grid;
+  grid-template-columns:minmax(340px,1fr) minmax(560px,760px);
+  align-items:center;
+  gap:22px;
+  padding:16px 22px;
+  background:
+    radial-gradient(circle at 12% 20%,rgba(0,93,170,.10),transparent 28rem),
+    linear-gradient(135deg,#ffffff 0%,#f6faff 54%,#e7f1fb 100%);
+  border-bottom:4px solid var(--azul);
+  box-shadow:0 10px 26px rgba(0,59,113,.12);
+}
+.dash-header::before{
+  content:'';
+  position:absolute;
+  left:0;right:0;top:0;height:5px;
+  background:linear-gradient(90deg,var(--azul),var(--rojo),var(--dorado));
+}
+.dash-brand{min-width:0;padding:8px 0 8px 2px;}
+.dash-brand .kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:var(--azul2);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:6px;
+}
+.dash-brand .kicker::before{
+  content:'';
+  width:9px;height:9px;border-radius:50%;
+  background:var(--rojo);
+  box-shadow:0 0 0 4px rgba(200,16,46,.10);
+}
+.dash-brand h1{
+  margin:0;
+  color:var(--azul);
+  font-size:clamp(21px,2.2vw,30px);
+  line-height:1.08;
+  max-width:720px;
+  letter-spacing:-.035em;
+}
+.brand-sub{
+  margin-top:7px;
+  color:#49627f;
+  font-size:13px;
+  max-width:680px;
+}
+.dashboard-filter-panel{
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(0,59,113,.16);
+  border-radius:22px;
+  box-shadow:0 12px 28px rgba(0,59,113,.11);
+  padding:13px 14px 14px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:11px;
+  backdrop-filter:blur(8px);
+}
+.dashboard-filter-panel .period-toggle{min-width:0;width:100%;}
+.dashboard-filter-panel .period-toggle label,
+.dashboard-filter-panel .tf label{
+  color:var(--azul);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.075em;
+  margin-bottom:5px;
+}
+.dashboard-filter-panel .period-buttons{
+  justify-content:flex-start;
+  gap:7px;
+}
+.dashboard-filter-panel .period-btn{
+  padding:8px 13px;
+  min-height:36px;
+  border-radius:999px;
+  box-shadow:0 5px 14px rgba(0,59,113,.10);
+}
+.dashboard-filter-panel .top-filters{
+  min-width:0;
+  max-width:none;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(130px,1fr));
+  gap:10px;
+}
+.dashboard-filter-panel select{
+  min-height:40px;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+@media(max-width:1220px){
+  .dash-header{grid-template-columns:1fr;padding:15px 18px;gap:12px;}
+  .dashboard-filter-panel .top-filters{grid-template-columns:repeat(2,minmax(160px,1fr));}
+}
+@media(max-width:680px){
+  .dash-header{padding:14px 12px;}
+  .dashboard-filter-panel .top-filters{grid-template-columns:1fr;}
+  .dashboard-filter-panel .period-buttons{justify-content:flex-start;}
+  .brand-sub{display:none;}
+}
+
+
+
+/* v18: reemplazo de donas por paneles de distribución más legibles */
+.distribution-row{align-items:stretch;}
+.distribution-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);}
+.distribution-card h2{background:linear-gradient(90deg,#003B71,#0B5F9E);}
+.distribution-card .body{padding:14px 16px 16px;}
+.dist-list{display:flex;flex-direction:column;gap:13px;min-height:252px;justify-content:center;}
+.dist-item{background:#ffffff;border:1px solid #d7e5f3;border-radius:14px;padding:10px 12px;box-shadow:0 6px 14px rgba(0,59,113,.06);}
+.dist-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
+.dist-name{display:flex;align-items:center;gap:8px;font-weight:850;color:#183a5c;min-width:0;line-height:1.15;}
+.dist-name i{width:11px;height:11px;border-radius:999px;display:inline-block;flex:0 0 auto;box-shadow:0 0 0 3px rgba(0,59,113,.07);}
+.dist-pct{font-weight:950;color:#003B71;font-variant-numeric:tabular-nums;background:#edf5ff;border:1px solid #c9dff3;border-radius:999px;padding:3px 8px;white-space:nowrap;}
+.dist-track{height:10px;background:#e5eef8;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,59,113,.04);}
+.dist-fill{height:100%;border-radius:999px;min-width:3px;transition:width .25s ease;}
+.dist-meta{font-size:11.5px;color:#5a6d84;margin-top:6px;font-weight:650;}
+.dist-empty{padding:28px;text-align:center;color:var(--muted);font-weight:750;}
+@media(max-width:980px){.dist-list{min-height:auto}.dist-item{padding:10px}}
+
+
+/* v19: controles de periodo tipo checklist y gráficos más sobrios */
+.period-dropdown{position:relative;width:100%;max-width:420px;}
+.period-summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #b8cce2;border-radius:14px;padding:10px 13px;color:var(--azul);font-weight:850;box-shadow:0 6px 16px rgba(0,59,113,.08);}
+.period-summary::-webkit-details-marker{display:none;}
+.period-summary:after{content:'▾';font-size:12px;color:#31516f;}
+.period-dropdown[open] .period-summary{border-color:var(--azul2);box-shadow:0 0 0 3px rgba(0,93,170,.12),0 10px 22px rgba(0,59,113,.13);}
+.period-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:80;background:#fff;border:1px solid var(--borde);border-radius:16px;box-shadow:0 16px 34px rgba(0,59,113,.20);padding:10px;min-width:260px;}
+.period-check{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;color:#173958;font-weight:750;cursor:pointer;}
+.period-check:hover{background:#eef5fc;}
+.period-check input{width:16px;height:16px;margin:0;accent-color:var(--azul);}
+.period-divider{height:1px;background:#d8e4f1;margin:6px 0;}
+.period-help{font-size:11px;color:var(--muted);padding:4px 10px 8px;}
+.period-chip-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#resumen .grid2{margin-top:0;}
+.chart-card-clean canvas{background:#fff;}
+#cGrade,#cArea,#cReadGrade{height:270px!important;}
+#cDist,#cRead,#cEvolPerfH,#cEvolReadH{height:270px!important;}
+#cEvolPerf,#cEvolRead{height:250px!important;}
+@media(max-width:980px){.period-menu{left:0;right:auto}.period-dropdown{max-width:none}}
+
+
+
+/* v21: encabezado y filtro de periodos refinados */
+.dash-header.v21-header{grid-template-columns:minmax(330px,.9fr) minmax(640px,1.35fr);padding:14px 22px;align-items:center;gap:20px;min-height:0;}
+.v21-header .dash-brand{padding:4px 0 4px 2px;}
+.v21-header .dash-brand h1{font-size:clamp(20px,2vw,28px);max-width:680px;}
+.v21-header .brand-sub{font-size:12.5px;margin-top:5px;}
+.v21-filter-panel{display:grid;grid-template-columns:1fr;gap:10px;padding:12px;border-radius:20px;background:rgba(255,255,255,.86);}
+.filter-period-card{display:flex;align-items:center;gap:12px;padding:9px 10px;border:1px solid #d6e4f2;border-radius:16px;background:linear-gradient(180deg,#ffffff,#f7fbff);}
+.filter-title{color:var(--azul);text-transform:uppercase;font-size:10px;font-weight:950;letter-spacing:.075em;min-width:70px;}
+.period-chipbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+.period-chip{appearance:none;border:1px solid #b8cce2;background:#fff;color:#244461;border-radius:999px;padding:7px 12px;font-weight:850;font-size:12.5px;cursor:pointer;line-height:1;box-shadow:0 3px 10px rgba(0,59,113,.06);}
+.period-chip:hover{border-color:var(--azul2);background:#f1f7ff;}
+.period-chip.active{background:linear-gradient(135deg,var(--azul),var(--azul2));color:#fff;border-color:var(--azul);box-shadow:0 7px 16px rgba(0,93,170,.20);}
+.period-chip.active::before{content:'✓ ';font-weight:950;}
+.period-chip.all{font-weight:950;}
+.v21-filter-panel .top-filters{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:9px;}
+.v21-filter-panel .tf label{font-size:9.8px;margin-bottom:4px;}
+.v21-filter-panel select{min-height:38px;padding:8px 10px;border-radius:13px;}
+@media(max-width:1180px){.dash-header.v21-header{grid-template-columns:1fr;gap:12px;}.filter-period-card{align-items:flex-start;flex-direction:column;gap:7px;}.v21-filter-panel .top-filters{grid-template-columns:repeat(2,minmax(160px,1fr));}}
+@media(max-width:680px){.v21-filter-panel .top-filters{grid-template-columns:1fr}.period-chip{font-size:12px;padding:7px 10px}}
+
+/* v22: periodo en barra lateral y separadores por grado en tabla de lectura */
+aside .sidebar-periods{display:grid;grid-template-columns:1fr;gap:8px;margin-top:7px;margin-bottom:14px;}
+aside .period-chip{width:100%;justify-content:center;text-align:center;padding:9px 10px;border-radius:12px;}
+#tLect tbody tr.grade-separator td{border-top:4px solid var(--azul-2) !important;}
+#tLect tbody tr.grade-separator td:first-child{font-weight:900;color:var(--azul);}
+#tLect tbody tr.grade-separator:not(:first-child) td{padding-top:13px;}
+#tLect tbody tr.grade-separator td{background:linear-gradient(180deg,#f4f9ff,#ffffff);}
+
+
+
+/* v23: Tacómetro de registro de centros públicos */
+.gauge-wrap{display:grid;grid-template-columns:minmax(240px,330px) minmax(260px,1fr);gap:16px;align-items:center;padding:0 14px 16px}
+.gauge-card{border:1px solid var(--borde);border-radius:18px;background:linear-gradient(145deg,#ffffff,#f4f8ff);padding:16px;display:grid;grid-template-columns:140px 1fr;gap:14px;align-items:center;border-left:5px solid var(--azul2)}
+.gauge-title{font-weight:900;color:var(--azul);font-size:14px;margin-bottom:2px}.gauge-sub{color:var(--muted);font-size:12px}.gauge-number{font-size:30px;line-height:1;font-weight:950;color:var(--azul);letter-spacing:-.04em}.gauge-count{font-size:12px;color:var(--texto);margin-top:6px;font-weight:650}.gauge-meta{font-size:11px;color:var(--muted);margin-top:6px}.gauge-svg text{font-family:Segoe UI,Arial,sans-serif}.gauge-scale{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;font-weight:700;margin-top:-10px;padding:0 10px}.gauge-note{background:#eef6ff;border:1px solid #c8d8ea;color:#294864;border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.45}.gauge-note b{color:var(--azul)}
+@media(max-width:980px){.gauge-wrap{grid-template-columns:1fr}.gauge-card{grid-template-columns:120px 1fr}.gauge-number{font-size:26px}}
+
+
+/* v24: Resumen más limpio: cobertura + tacómetro integrado, sin texto explicativo */
+.coverage-block{border-radius:22px;overflow:hidden;background:#fff}
+.coverage-block h3{font-size:16px;padding:14px 18px;background:linear-gradient(90deg,#003B71,#0065AA)}
+.coverage-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;padding:16px;align-items:stretch}
+.coverage-layout .coverage{padding:0;display:grid;grid-template-columns:repeat(5,minmax(135px,1fr));gap:12px}
+.coverage-layout .cov-card{min-height:110px;display:flex;flex-direction:column;justify-content:center;border-radius:18px;border:1px solid #c6d8ec;background:linear-gradient(145deg,#ffffff,#f6faff);box-shadow:0 8px 20px rgba(0,59,113,.06);border-left:6px solid #005DAA;position:relative;overflow:hidden}
+.coverage-layout .cov-card:after{content:"";position:absolute;right:-28px;top:-28px;width:78px;height:78px;border-radius:999px;background:rgba(0,93,170,.07)}
+.coverage-layout .cov-card small{font-size:11px;letter-spacing:.04em}
+.coverage-layout .cov-card .val{font-size:28px}
+.gauge-wrap{padding:0;display:block;align-self:stretch}
+.gauge-card{height:100%;min-height:230px;border:1px solid #c6d8ec;border-radius:18px;background:linear-gradient(145deg,#f8fbff,#eef6ff);padding:16px;display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center;border-left:6px solid #2E7D32;box-shadow:0 8px 20px rgba(0,59,113,.06)}
+.gauge-title{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#003B71;font-weight:900;margin-bottom:8px}.gauge-number{font-size:34px;color:#003B71}.gauge-count{font-size:13px;color:#10233f;font-weight:750;margin-top:8px}.gauge-meta{font-size:12px;color:#53657d;margin-top:6px}.gauge-pill{display:inline-flex;margin-top:10px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:900;background:#e6f4ea;color:#2E7D32;border:1px solid rgba(46,125,50,.20)}
+.gauge-scale{font-size:10px;color:#53657d;font-weight:800;margin-top:-6px}
+.gauge-note{display:none!important}
+@media(max-width:1350px){.coverage-layout{grid-template-columns:1fr}.gauge-card{min-height:180px}.coverage-layout .coverage{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.coverage-layout{padding:12px}.coverage-layout .coverage{grid-template-columns:1fr}.gauge-card{grid-template-columns:1fr;text-align:center}.gauge-scale{max-width:140px;margin-left:auto;margin-right:auto}}
+
+
+
+/* v25: indicadores sintéticos de desempeño y lectura */
+.indicators-block{border-radius:22px;overflow:hidden;background:#fff}
+.indicators-block h3{font-size:16px;padding:14px 18px;background:linear-gradient(90deg,#003B71,#0065AA)}
+.indicator-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:16px}
+.indicator-card{position:relative;overflow:hidden;border:1px solid #c6d8ec;border-radius:18px;background:linear-gradient(145deg,#ffffff,#f6faff);padding:16px 18px;min-height:128px;box-shadow:0 8px 20px rgba(0,59,113,.06);border-left:6px solid var(--azul)}
+.indicator-card:after{content:"";position:absolute;right:-34px;top:-34px;width:92px;height:92px;border-radius:999px;background:rgba(0,93,170,.07)}
+.indicator-card.good{border-left-color:#0E7C86}.indicator-card.read{border-left-color:#7A4FB3}.indicator-card.caution{border-left-color:#E8693B}
+.indicator-card small{display:block;color:var(--azul);text-transform:uppercase;font-size:11px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}
+.indicator-card .val{font-size:32px;font-weight:950;line-height:1.05;color:var(--azul);letter-spacing:-.03em}
+.indicator-card .det{font-size:12.5px;color:var(--muted);margin-top:8px;max-width:92%;font-weight:600}
+.indicator-meter{height:8px;background:#d9e7f5;border-radius:999px;margin-top:12px;overflow:hidden}
+.indicator-meter span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#005DAA,#0E7C86)}
+.indicator-card.read .indicator-meter span{background:linear-gradient(90deg,#7A4FB3,#0E7C86)}
+.indicator-card.caution .indicator-meter span{background:linear-gradient(90deg,#E8693B,#B5458C)}
+@media(max-width:980px){.indicator-grid{grid-template-columns:1fr}.indicator-card .val{font-size:28px}}
+
+
+/* v26: resumen unificado y panel superior no fijo */
+header{position:relative!important;top:auto!important;}
+.tabs{position:static!important;top:auto!important;}
+.summary-unified{border-radius:22px;overflow:hidden;background:#fff;}
+.summary-unified h3{font-size:16px;padding:14px 18px;background:linear-gradient(90deg,#003B71,#0065AA);}
+.summary-unified-body{padding:16px;display:grid;gap:16px;}
+.summary-unified .coverage-layout{padding:0;grid-template-columns:minmax(0,1fr) 360px;}
+.summary-unified .indicator-grid{padding:0;grid-template-columns:repeat(3,minmax(0,1fr));}
+.summary-unified .indicator-card,.summary-unified .cov-card,.summary-unified .gauge-card{box-shadow:0 6px 16px rgba(0,59,113,.06);}
+.indicators-block,.coverage-block{display:none!important;}
+@media(max-width:1350px){.summary-unified .coverage-layout{grid-template-columns:1fr}.summary-unified .indicator-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:980px){.summary-unified .indicator-grid{grid-template-columns:1fr;}}
+
+
+/* v29: compactar el espacio inferior de los gráficos */
+.section.chart-card-clean .body,
+.section.subtle .body,
+#desempeno .section .body,
+#lectura .section .body,
+#evolucion .section .body{padding-bottom:6px;}
+.section.chart-card-clean,
+#desempeno .section,
+#lectura .section:first-child,
+#evolucion .section{margin-bottom:12px;}
+.chart-card-clean canvas{max-height:270px;}
+
+
+/* v31: rediseño de tarjetas de cobertura para una lectura más equilibrada */
+.summary-unified{border-radius:24px;border:1px solid #c5d8ee;background:linear-gradient(180deg,#ffffff 0%,#f7fbff 100%);box-shadow:0 12px 30px rgba(0,59,113,.10)}
+.summary-unified h3{background:linear-gradient(90deg,#003B71 0%,#005DAA 100%);font-size:16px;padding:14px 20px;letter-spacing:.01em}
+.summary-unified-body{padding:18px;gap:18px}
+.summary-unified .coverage-layout{display:grid;grid-template-columns:1fr 390px;gap:18px;align-items:stretch;padding:0!important}
+.summary-unified .coverage-layout .coverage{display:grid;grid-template-columns:repeat(5,minmax(142px,1fr));gap:12px;padding:0!important}
+.summary-unified .coverage-layout .cov-card{min-height:96px;border-radius:18px;border:1px solid #c8d9ec;background:linear-gradient(180deg,#ffffff 0%,#f5f9ff 100%);box-shadow:0 8px 18px rgba(0,59,113,.055);border-left:0!important;border-top:5px solid #005DAA;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.summary-unified .coverage-layout .cov-card:after{content:"";position:absolute;right:-22px;top:-22px;width:66px;height:66px;border-radius:999px;background:rgba(0,93,170,.075)}
+.summary-unified .coverage-layout .cov-card:nth-child(1){border-top-color:#003B71}.summary-unified .coverage-layout .cov-card:nth-child(2){border-top-color:#0E7C86}.summary-unified .coverage-layout .cov-card:nth-child(3){border-top-color:#5B4B8A}.summary-unified .coverage-layout .cov-card:nth-child(4){border-top-color:#005DAA}.summary-unified .coverage-layout .cov-card:nth-child(5){border-top-color:#2E7D32}
+.summary-unified .coverage-layout .cov-card small{font-size:10.5px;line-height:1.25;letter-spacing:.045em;color:#003B71;margin-bottom:7px;max-width:94%}
+.summary-unified .coverage-layout .cov-card .val{font-size:25px;line-height:1.05;letter-spacing:-.04em;color:#003B71}
+.summary-unified .coverage-layout .cov-card .det{font-size:11.5px;line-height:1.35;color:#53657d;margin-top:7px;max-width:96%}
+.summary-unified .gauge-card{min-height:96px;height:100%;border-radius:18px;border:1px solid #c8d9ec;background:linear-gradient(180deg,#ffffff 0%,#f5fbf8 100%);box-shadow:0 8px 18px rgba(0,59,113,.055);border-left:0!important;border-top:5px solid #2E7D32;grid-template-columns:118px 1fr;padding:14px 16px;gap:12px}
+.summary-unified .gauge-svg{width:118px;height:78px}.summary-unified .gauge-title{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:#003B71;font-weight:900;line-height:1.3}.summary-unified .gauge-number{font-size:28px;line-height:1.05}.summary-unified .gauge-count{font-size:12.5px}.summary-unified .gauge-meta{display:none}.summary-unified .gauge-pill{margin-top:8px;padding:5px 11px;font-size:11px}.summary-unified .gauge-scale{font-size:11px;font-weight:850;color:#31516f;display:flex;justify-content:space-between;margin-top:0}
+.summary-unified .indicator-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0!important}
+.summary-unified .indicator-card{min-height:112px;border-radius:18px;padding:14px 16px;border-top:5px solid #005DAA;border-left:1px solid #c8d9ec!important;box-shadow:0 8px 18px rgba(0,59,113,.055);background:linear-gradient(180deg,#ffffff 0%,#f6faff 100%)}
+.summary-unified .indicator-card:after{width:62px;height:62px;right:-20px;top:-20px;background:rgba(0,93,170,.06)}
+.summary-unified .indicator-card.good{border-top-color:#0E7C86}.summary-unified .indicator-card.read{border-top-color:#7A4FB3}.summary-unified .indicator-card.caution{border-top-color:#E8693B}
+.summary-unified .indicator-card small{font-size:10.5px;line-height:1.25}.summary-unified .indicator-card .val{font-size:28px}.summary-unified .indicator-card .det{font-size:11.8px;line-height:1.35;margin-top:7px}
+@media(max-width:1450px){.summary-unified .coverage-layout{grid-template-columns:1fr}.summary-unified .coverage-layout .coverage{grid-template-columns:repeat(5,minmax(120px,1fr))}.summary-unified .gauge-card{grid-template-columns:118px 1fr;min-height:116px}}
+@media(max-width:980px){.summary-unified .coverage-layout .coverage{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-unified .indicator-grid{grid-template-columns:1fr}.summary-unified .gauge-card{grid-template-columns:110px 1fr}.summary-unified .coverage-layout .cov-card .val{font-size:23px}}
+
+
+
+/* v32: unir la fila del tacómetro con los indicadores generales */
+.summary-unified-body{
+  display:grid!important;
+  grid-template-columns:minmax(300px,360px) minmax(0,1fr);
+  grid-template-areas:
+    "coverage coverage"
+    "gauge indicators";
+  gap:16px!important;
+  align-items:stretch;
+}
+.summary-unified .coverage-layout{
+  display:contents!important;
+}
+.summary-unified .coverage-layout .coverage{
+  grid-area:coverage;
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(120px,1fr))!important;
+  gap:12px!important;
+  padding:0!important;
+}
+#publicGauge{
+  grid-area:gauge;
+  display:block!important;
+  align-self:stretch;
+  padding:0!important;
+}
+.summary-unified .gauge-card{
+  height:100%;
+  min-height:170px;
+  grid-template-columns:118px 1fr;
+  align-items:center;
+}
+#generalIndicators{
+  grid-area:indicators;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(160px,1fr))!important;
+  gap:12px!important;
+  padding:0!important;
+  align-self:stretch;
+}
+.summary-unified .indicator-card{
+  min-height:170px;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.summary-unified .indicator-meter{margin-top:auto;}
+@media(max-width:1200px){
+  .summary-unified-body{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "coverage"
+      "gauge"
+      "indicators";
+  }
+  .summary-unified .coverage-layout .coverage{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  #generalIndicators{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .summary-unified .gauge-card{min-height:145px;}
+  .summary-unified .indicator-card{min-height:135px;}
+}
+@media(max-width:760px){
+  .summary-unified .coverage-layout .coverage,#generalIndicators{grid-template-columns:1fr!important;}
+  .summary-unified .gauge-card{grid-template-columns:1fr;text-align:center;}
+}
+
+</style>
+</head>
+<body>
+<div id="loading" class="loading">Cargando datos de SIREV…</div>
+<header class="dash-header v21-header">
+  <div class="title dash-brand">
+    <div class="kicker">SIREV Primaria</div>
+    <h1>Dashboard de Resultados de Evaluaciones del Nivel Primario</h1>
+    <div class="brand-sub">Consulta interactiva por grado, área, competencia, indicador y periodo.</div>
+  </div>
+  <div class="dashboard-filter-panel v21-filter-panel" aria-label="Panel de filtros principales">
+    <div class="top-filters">
+      <div class="tf"><label>Grado</label><select id="fGrado"></select></div>
+      <div class="tf"><label>Área/asignatura</label><select id="fArea"></select></div>
+      <div class="tf"><label>Competencia</label><select id="fComp"></select></div>
+      <div class="tf"><label>Indicador</label><select id="fIndicador"></select></div>
+    </div>
+  </div>
+</header>
+<div class="layout"><aside><label>Periodo</label><select id="fPeriodo"></select><label>Regional</label><select id="fRegional"></select><label>Distrito</label><select id="fDistrito"></select><label>Centro educativo</label><div class="center-filter"><input id="fCentro" placeholder="Escriba código o nombre" autocomplete="off"><div id="centerSuggest" class="suggestions"></div></div><label>Sector</label><select id="fSector"></select><label>Tipo de centro</label><select id="fTipo"></select><label>Tanda</label><select id="fTanda"></select><div class="buttons"><button onclick="resetFilters()" class="secondary">Limpiar filtros</button><button onclick="exportResumen()" class="secondary">Exportar datos visibles</button></div></aside><main><div class="tabs"><button class="tab active" onclick="showPane('resumen',this)">Resumen</button><button class="tab" onclick="showPane('desempeno',this)">Desempeño</button><button class="tab" onclick="showPane('lectura',this)">Lectura</button><button class="tab" onclick="showPane('evolucion',this)">Evolución</button><button class="tab" onclick="showPane('brechas',this)">Brechas</button><button class="tab" onclick="showPane('matriz',this)">Matriz</button></div>
+<section id="resumen" class="pane active"><div class="card-block summary-unified"><h3>Resumen general de la evaluación</h3><div class="summary-unified-body"><div class="coverage-layout"><div class="coverage" id="coverageCards"></div><div id="publicGauge" class="gauge-wrap"></div></div><div id="generalIndicators" class="indicator-grid"></div></div></div><div class="grid2"><div class="section chart-card-clean"><h2>Distribución del desempeño por periodo</h2><div class="body"><canvas id="cDist"></canvas></div></div><div class="section chart-card-clean"><h2>Distribución de niveles de lectura por periodo</h2><div class="body"><canvas id="cRead"></canvas></div></div></div></section>
+<section id="desempeno" class="pane"><div class="section"><h2>Desempeño por grado</h2><div class="body"><canvas id="cGrade"></canvas></div></div><div class="section"><h2>Desempeño por área</h2><div class="body"><canvas id="cArea"></canvas></div></div></section>
+<section id="lectura" class="pane"><div class="section"><h2>Niveles de lectura por grado</h2><div class="body"><canvas id="cReadGrade"></canvas></div></div><div class="section"><h2>Tabla de lectura por grado y periodo</h2><div class="body tablewrap"><table id="tLect"></table></div></div></section>
+<section id="evolucion" class="pane"><div class="evol-grid"><div class="section"><h2>Evolución del desempeño por periodo</h2><div class="body"><canvas id="cEvolPerf"></canvas></div></div><div class="section"><h2>Evolución de lectura por periodo</h2><div class="body"><canvas id="cEvolRead"></canvas></div></div></div><div class="evol-grid" style="margin-top:16px"><div class="section subtle"><h2>Comparación del desempeño por periodo</h2><div class="body"><canvas id="cEvolPerfH"></canvas></div></div><div class="section subtle"><h2>Comparación de niveles de lectura por periodo</h2><div class="body"><canvas id="cEvolReadH"></canvas></div></div></div></section>
+<section id="brechas" class="pane"><div class="section"><h2>Ranking por regional</h2><div class="body tablewrap"><table id="tReg"></table></div></div><div class="section"><h2>Ranking por distrito</h2><div class="body tablewrap"><table id="tDist"></table></div></div><div class="section"><h2>Ranking por centro educativo</h2><div class="body tablewrap"><table id="tCentro"></table></div></div></section>
+<section id="matriz" class="pane"><div class="section"><h2>Matriz jerárquica Regional → Distrito → Centro</h2><div class="body"><label style="margin-top:0">Tipo de análisis</label><select id="matrixMode" onchange="renderMatrix()" style="max-width:260px"><option value="perf">Desempeño</option><option value="read">Lectura</option></select><input id="matrixSearch" oninput="renderMatrix()" placeholder="Buscar en la matriz" style="max-width:320px;margin-left:8px"><div id="matrix" style="margin-top:12px"></div></div></div></section>
+</main></div>
+<script>
+Chart.register(ChartDataLabels);
+const C={E:'#1E96F2',A:'#20279A',S:'#E8693B',N1:'#1E96F2',N2:'#20279A',N3:'#E8693B',N4:'#790987',N5:'#DF44A4'};
+let selectedPeriod=''; // Por defecto se inicializa con el último periodo disponible. Use '__ALL__' para todos.
+const orderPeriod=['Septiembre','Noviembre','Marzo','Mayo'], orderArea=['Lengua Española','Matemática','Ciencias Sociales','Ciencias de la Naturaleza'], orderGrade=[1,2,3,4,5,6], gradeName={1:'Primero',2:'Segundo',3:'Tercero',4:'Cuarto',5:'Quinto',6:'Sexto'};
+const readOrder=['Lector de imágenes','Lector de sílabas','Lector de palabras','Lector no fluido','Lector fluido'];
+let DATA,D,PERF,READ,COV,charts={},current={};
+function fmt(n){return Math.round(n||0).toLocaleString('es-DO')} function pct(n,d){return d?100*n/d:0} function pctf(x){return (x||0).toFixed(2)+'%'} function idText(id){return (typeof id==='number' && D && D[id]!==undefined)?D[id]:''}
+function parseGrade(v){
+  if(typeof v==='number'&&v>=1&&v<=6)return v;
+  let t=(typeof v==='number'&&D&&D[v]!==undefined)?D[v]:String(v||'');
+  let m=t.match(/G\s*(\d+)/i)||t.match(/(Primero|Segundo|Tercero|Cuarto|Quinto|Sexto)/i)||t.match(/([1-6])/);
+  if(!m)return null;
+  const s=m[0];
+  if(/Primero/i.test(s))return 1; if(/Segundo/i.test(s))return 2; if(/Tercero/i.test(s))return 3;
+  if(/Cuarto/i.test(s))return 4; if(/Quinto/i.test(s))return 5; if(/Sexto/i.test(s))return 6;
+  return +m[1];
+}
+function gradeOf(r){
+  const candidates = (r.length===11) ? [r[7],r[8]] : (r.length===12 ? [r[8],r[7]] : [r[8],r[7]]);
+  for(const v of candidates){ const g=parseGrade(v); if(g) return g; }
+  return null;
+}
+function loadData(){const parts=(window.SIREV_DATA_B64_CHUNKS_PARTS||[]).flat(); const b64=parts.join(''); const bin=atob(b64); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); const json=pako.ungzip(arr,{to:'string'}); DATA=JSON.parse(json); D=DATA.dict; PERF=DATA.perf; READ=DATA.read; COV=DATA.cov; document.getElementById('loading').style.display='none'; init();}
+function optAll(id,label){const el=document.getElementById(id); el.innerHTML='<option value="">'+label+'</option>'} function fill(id,vals,label,sorter){const el=document.getElementById(id),cur=el.value; optAll(id,label); vals=[...new Set(vals.filter(v=>v!==''&&v!=null))]; if(sorter) vals.sort(sorter); else vals.sort((a,b)=>String(a).localeCompare(String(b),'es')); vals.forEach(v=>{let o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o)}); if(vals.includes(cur))el.value=cur;}
+function availablePeriods(){return orderPeriod.filter(p=>COV.some(r=>idText(r[6])===p));}
+function latestPeriod(){const av=availablePeriods(); return av.length?av[av.length-1]:null;}
+function getSelectedPeriods(){
+  const av=availablePeriods();
+  if(!selectedPeriod){const lp=latestPeriod(); selectedPeriod=lp||'__ALL__';}
+  if(selectedPeriod==='__ALL__') return av;
+  return av.filter(p=>p===selectedPeriod);
+}
+function buildPeriodButtons(){
+  const sel=document.getElementById('fPeriodo'); if(!sel)return;
+  const av=availablePeriods();
+  if(!selectedPeriod){const lp=latestPeriod(); selectedPeriod=lp||'__ALL__';}
+  sel.innerHTML='<option value="__ALL__">Todos los periodos</option>'+av.map(p=>`<option value="${p}">${p}</option>`).join('');
+  sel.value=selectedPeriod;
+}
+function setSelectedPeriod(value){
+  selectedPeriod=value||'__ALL__';
+  buildPeriodButtons();
+  rebuildDependentFilters();
+  apply();
+}
+function selectAllPeriods(){setSelectedPeriod('__ALL__');}
+function togglePeriod(p){setSelectedPeriod(p);}
+
+function filters(){return {periods:getSelectedPeriods(), reg:fRegional.value, dist:fDistrito.value, centro:fCentro.dataset.selected||'', centroText:fCentro.value.trim().toLowerCase(), sec:fSector.value, tipo:fTipo.value, tanda:fTanda.value, g:fGrado.value?+fGrado.value:null, area:fArea.value, comp:fComp.value, ind:fIndicador.value}}
+function matchBase(r,f,includeGrade=true){if(f.periods&&f.periods.length&&!f.periods.includes(idText(r[6])))return false;if(f.reg&&idText(r[0])!==f.reg)return false;if(f.dist&&idText(r[1])!==f.dist)return false;if(f.sec&&idText(r[3])!==f.sec)return false;if(f.tipo&&idText(r[4])!==f.tipo)return false;if(f.tanda&&idText(r[5])!==f.tanda)return false;if(includeGrade&&f.g&&gradeOf(r)!==f.g)return false;if(f.centro){if(idText(r[2])!==f.centro)return false}else if(f.centroText){let t=(idText(r[2])+' '+idText(r[1])+' '+idText(r[0])).toLowerCase();if(!t.includes(f.centroText))return false}return true}
+function matchPerf(r,f){return matchBase(r,f,true)&&(!f.area||idText(r[9])===f.area)&&(!f.comp||idText(r[10])===f.comp)&&(!f.ind||idText(r[11])===f.ind)}
+function matchRead(r,f){return matchBase(r,f,true)}
+function init(){setupFilters(); buildPeriodButtons(); document.getElementById('fPeriodo').addEventListener('change',e=>setSelectedPeriod(e.target.value)); ['fRegional','fDistrito','fSector','fTipo','fTanda','fGrado','fArea','fComp','fIndicador'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(id==='fRegional')fDistrito.value=''; if(id==='fArea'){fComp.value='';fIndicador.value=''} if(id==='fComp')fIndicador.value=''; if(id!=='fIndicador')rebuildDependentFilters(); apply();})); fCentro.addEventListener('input',centerSuggest); fCentro.addEventListener('keydown',e=>{if(e.key==='Enter'){const first=centerSuggestBox.querySelector('.suggestion'); if(first){e.preventDefault(); selectCenter(first.dataset.c);}}}); document.addEventListener('click',e=>{if(!e.target.closest('.center-filter'))centerSuggestBox.classList.remove('open');}); apply();}
+function setupFilters(){fill('fRegional',COV.map(r=>idText(r[0])),'Todas las regionales'); fill('fDistrito',COV.map(r=>idText(r[1])),'Todos los distritos'); fill('fSector',COV.map(r=>idText(r[3])),'Todos los sectores'); fill('fTipo',COV.map(r=>idText(r[4])),'Todos los tipos'); fill('fTanda',COV.map(r=>idText(r[5])),'Todas las tandas'); fill('fGrado',orderGrade.filter(g=>COV.some(r=>gradeOf(r)===g)),'Todos los grados',(a,b)=>a-b); [...fGrado.options].forEach(o=>{if(o.value)o.textContent=gradeName[o.value]}); fill('fArea',orderArea.filter(a=>PERF.some(r=>idText(r[9])===a)),'Todas las áreas',(a,b)=>orderArea.indexOf(a)-orderArea.indexOf(b)); rebuildDependentFilters();}
+function rebuildDependentFilters(){const f=filters(); let comps=[],inds=[]; for(const r of PERF){if(matchBase(r,f,true)&&(!f.area||idText(r[9])===f.area)){const comp=idText(r[10]), ind=idText(r[11]); comps.push(comp); if(!f.comp||comp===f.comp) inds.push(ind);}} fill('fComp',comps,'Todas las competencias',(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true})); fill('fIndicador',inds,'Todos los indicadores',(a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));}
+const centerSuggestBox=document.getElementById('centerSuggest');
+function setSelectIfOption(selectEl,value){
+  if(!selectEl || value==null) return;
+  const v=String(value);
+  const exists=[...selectEl.options].some(o=>o.value===v);
+  if(exists) selectEl.value=v;
+}
+function syncFiltersToSelectedCenter(centerValue){
+  const currentFilters = filters();
+  const rows = COV.filter(r=>idText(r[2])===centerValue);
+  if(!rows.length) return;
+  // Preferimos una fila compatible con el periodo ya seleccionado, si existe.
+  let row = rows.find(r=>!currentFilters.p || idText(r[6])===currentFilters.p) || rows[0];
+  setSelectIfOption(fRegional,idText(row[0]));
+  setSelectIfOption(fDistrito,idText(row[1]));
+  setSelectIfOption(fSector,idText(row[3]));
+  setSelectIfOption(fTipo,idText(row[4]));
+  setSelectIfOption(fTanda,idText(row[5]));
+}
+function selectCenter(centerValue){
+  fCentro.value=centerValue;
+  fCentro.dataset.selected=centerValue;
+  syncFiltersToSelectedCenter(centerValue);
+  centerSuggestBox.classList.remove('open');
+  rebuildDependentFilters();
+  apply();
+}
+function centerSuggest(){
+  fCentro.dataset.selected='';
+  const f=filters(),q=fCentro.value.trim().toLowerCase();
+  if(q.length<2){centerSuggestBox.classList.remove('open');return}
+  const map=new Map();
+  for(const r of COV){
+    if(!matchBase(r,{...f,centro:'',centroText:''},true))continue;
+    const c=idText(r[2]),txt=c.toLowerCase();
+    if(txt.includes(q)&&!map.has(c)) map.set(c,[idText(r[0]),idText(r[1])]);
+    if(map.size>=40)break;
+  }
+  centerSuggestBox.innerHTML=[...map.entries()].map(([c,m])=>`<div class="suggestion" data-c="${c.replace(/"/g,'&quot;')}"><b>${c.split(' - ')[0]}</b> ${c.split(' - ').slice(1).join(' - ')}<small>${m[0]} · ${m[1]}</small></div>`).join('');
+  centerSuggestBox.classList.toggle('open',map.size>0);
+  centerSuggestBox.querySelectorAll('.suggestion').forEach(el=>el.onclick=()=>selectCenter(el.dataset.c));
+}
+function apply(){current.f=filters(); current.perf=PERF.filter(r=>matchPerf(r,current.f)); current.read=READ.filter(r=>matchRead(r,current.f)); current.cov=COV.filter(r=>matchBase(r,current.f,true)); renderAll();}
+function aggLevels(rows,levels,idxLevel,idxVal){let m=Object.fromEntries(levels.map(k=>[k,0])); for(const r of rows){let k=idText(r[idxLevel]); if(m[k]!=null)m[k]+=r[idxVal];} return m}
+function covAgg(rows){let mat=0,ev=0,regs=new Set(),dists=new Set(),cent=new Set(); for(const r of rows){mat+=r[9];ev+=r[10];regs.add(r[0]);dists.add(r[1]);cent.add(r[2])} return {mat,ev,regs:regs.size,dists:dists.size,cent:cent.size}}
+function renderAll(){renderCoverage();renderGeneralIndicators();renderBars();renderTables();renderMatrix();}
+function centerCodeFromText(s){const m=String(s||'').match(/^(\d{1,6})/);return m?m[1].padStart(5,'0'):''}
+function publicCatalogFiltered(){const f=current.f||filters(); const selectedCenter=f.centro?centerCodeFromText(f.centro):''; return (window.SIREV_PUBLIC_CATALOG||[]).filter(c=>{
+  if(f.reg && c[1]!==f.reg)return false;
+  if(f.dist && c[2]!==f.dist)return false;
+  if(selectedCenter && c[0]!==selectedCenter)return false;
+  return true;
+});}
+function publicRegisteredCenters(){const f=current.f||filters(); const catCodes=new Set(publicCatalogFiltered().map(c=>c[0])); const periods=f.periods&&f.periods.length?f.periods:getSelectedPeriods(); const codes=new Set();
+  for(const r of COV){
+    const p=idText(r[6]); if(periods.length && !periods.includes(p))continue;
+    if(f.reg && idText(r[0])!==f.reg)continue;
+    if(f.dist && idText(r[1])!==f.dist)continue;
+    if(f.centro && idText(r[2])!==f.centro)continue;
+    const code=centerCodeFromText(idText(r[2]));
+    if(catCodes.has(code) && (r[10]||0)>0) codes.add(code);
+  }
+  return codes;
+}
+function gaugePath(cx,cy,r,start,end){function pt(a){const rad=(a-90)*Math.PI/180;return [cx+r*Math.cos(rad),cy+r*Math.sin(rad)]} const [sx,sy]=pt(start),[ex,ey]=pt(end); const large=Math.abs(end-start)>180?1:0; return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;}
+function renderPublicGauge(){const box=document.getElementById('publicGauge'); if(!box)return; const denom=publicCatalogFiltered().length; const registered=publicRegisteredCenters().size; const val=denom?pct(registered,denom):0; const clamped=Math.max(0,Math.min(100,val)); const end=-90+(clamped*180/100); const arc=gaugePath(70,72,56,-90,end); const bg=gaugePath(70,72,56,-90,90); let status=clamped>=90?'Alta cobertura':(clamped>=70?'Cobertura media':'Cobertura baja'); const color=clamped>=90?'#2E7D32':clamped>=70?'#F2A900':'#C8102E';
+  box.innerHTML=`<div class="gauge-card"><div><svg class="gauge-svg" viewBox="0 0 140 92" width="140" height="92" aria-label="Tacómetro de cobertura de centros públicos"><path d="${bg}" fill="none" stroke="#d6e3f2" stroke-width="14" stroke-linecap="round"/><path d="${arc}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/><line x1="70" y1="72" x2="${70+48*Math.cos((end-90)*Math.PI/180)}" y2="${72+48*Math.sin((end-90)*Math.PI/180)}" stroke="#003B71" stroke-width="3" stroke-linecap="round"/><circle cx="70" cy="72" r="5" fill="#003B71"/></svg><div class="gauge-scale"><span>0%</span><span>100%</span></div></div><div><div class="gauge-title">Centros públicos con registro</div><div class="gauge-number">${pctf(clamped)}</div><div class="gauge-count">${fmt(registered)} de ${fmt(denom)} centros públicos</div><div class="gauge-meta">Según catálogo oficial del Nivel Primario</div><span class="gauge-pill" style="color:${color};border-color:${color}33;background:${color}18">${status}</span></div></div>`;
+}
+function renderCoverage(){
+  const a=covAgg(current.cov);
+  const publicDenom=publicCatalogFiltered().length;
+  const publicRegistered=publicRegisteredCenters().size;
+  coverageCards.innerHTML=`<div class="cov-card"><small>Matrícula</small><div class="val">${fmt(a.mat)}</div></div><div class="cov-card"><small>Evaluados</small><div class="val">${fmt(a.ev)}</div><div class="det">${pctf(pct(a.ev,a.mat))} de cobertura</div></div><div class="cov-card"><small>Regionales</small><div class="val">${fmt(a.regs)}</div></div><div class="cov-card"><small>Distritos</small><div class="val">${fmt(a.dists)}</div></div><div class="cov-card"><small>Centros públicos con registro</small><div class="val">${fmt(publicRegistered)}</div><div class="det">de ${fmt(publicDenom)} centros públicos</div></div>`;
+  renderPublicGauge();
+}
+
+function renderGeneralIndicators(){
+  if(!window.generalIndicators) return;
+  const cov=covAgg(current.cov);
+  const perf=aggLevels(current.perf,['Elemental','Aceptable','Satisfactorio'],13,14);
+  const perfTotal=perf.Elemental+perf.Aceptable+perf.Satisfactorio;
+  const aceptSat=perf.Aceptable+perf.Satisfactorio;
+  const aceptSatPct=pct(aceptSat,perfTotal);
+  const aceptSatEst=Math.round((cov.ev||0) * aceptSatPct / 100);
+
+  const read=aggLevels(current.read,readOrder,9,10);
+  const readTotal=Object.values(read).reduce((a,b)=>a+b,0);
+  const fluido=read['Lector fluido']||0;
+  const noFluido=read['Lector no fluido']||0;
+  const fluidoPct=pct(fluido,readTotal);
+  const noFluidoPct=pct(noFluido,readTotal);
+
+  generalIndicators.innerHTML=`
+    <div class="indicator-card good">
+      <small>Aceptable + satisfactorio</small>
+      <div class="val">${pctf(aceptSatPct)}</div>
+      <div class="det">${fmt(aceptSatEst)} estudiantes en niveles Aceptable o Satisfactorio.</div>
+      <div class="indicator-meter"><span style="width:${Math.min(100,aceptSatPct)}%"></span></div>
+    </div>
+    <div class="indicator-card read">
+      <small>Lector fluido</small>
+      <div class="val">${pctf(fluidoPct)}</div>
+      <div class="det">${fmt(fluido)} estudiantes en nivel lector fluido.</div>
+      <div class="indicator-meter"><span style="width:${Math.min(100,fluidoPct)}%"></span></div>
+    </div>
+    <div class="indicator-card caution">
+      <small>Lector no fluido</small>
+      <div class="val">${pctf(noFluidoPct)}</div>
+      <div class="det">${fmt(noFluido)} estudiantes en nivel lector no fluido.</div>
+      <div class="indicator-meter"><span style="width:${Math.min(100,noFluidoPct)}%"></span></div>
+    </div>`;
+}
+function chart(id,type,data,options={}){
+  if(charts[id])charts[id].destroy();
+  const baseOptions={
+    responsive:true,
+    maintainAspectRatio:false,
+    layout:{padding:{top:10,right:12,bottom:8,left:12}},
+    plugins:{
+      legend:{position:'bottom',labels:{boxWidth:18,padding:14,color:'#53657d',font:{size:12,weight:'600'}}},
+      datalabels:{
+        color:'#ffffff',
+        textStrokeColor:'rgba(0,59,113,.85)',
+        textStrokeWidth:3,
+        font:{weight:'900',size:12},
+        clamp:true,
+        formatter:(v,ctx)=>{
+          let ds=ctx.chart.data.datasets[ctx.datasetIndex];
+          let tot=ds.data.reduce((a,b)=>a+(+b||0),0);
+          if(!tot)return '';
+          const val = type==='doughnut' ? (v*100/tot) : v;
+          return val>=3 ? pctf(val) : '';
+        }
+      },
+      tooltip:{callbacks:{label:c=>{
+        const total=c.dataset.data.reduce((a,b)=>a+(+b||0),0);
+        const value=+c.raw||0;
+        const label=c.dataset.label||c.label||'';
+        return `${label}: ${type==='doughnut'?fmt(value):pctf(value)}${type==='doughnut'?' ('+pctf(value*100/total)+')':''}`;
+      }}}
+    },
+    scales:type==='doughnut'?{}:{x:{ticks:{color:'#53657d'},grid:{color:'rgba(0,59,113,.08)'}},y:{ticks:{color:'#53657d'},grid:{color:'rgba(0,59,113,.10)'}}}
+  };
+  const merged={...baseOptions,...options,plugins:{...baseOptions.plugins,...(options.plugins||{})},scales:{...baseOptions.scales,...(options.scales||{})}};
+  if(options.plugins&&options.plugins.datalabels) merged.plugins.datalabels={...baseOptions.plugins.datalabels,...options.plugins.datalabels};
+  charts[id]=new Chart(document.getElementById(id),{type,data,options:merged});
+}
+function distColor(label, i){
+  const l=(label||'').toUpperCase();
+  if(l.includes('REGULAR')) return '#005DAA';
+  if(l.includes('MULTIGRADO')) return '#2E7D50';
+  if(l.includes('PÚBLICO')||l.includes('PUBLICO')) return '#003B71';
+  if(l.includes('PRIVADO')) return '#1F8EA6';
+  if(l.includes('SEMIOFICIAL')) return '#C86B1F';
+  if(l.includes('EXTENDIDA')) return '#003B71';
+  if(l.includes('MATUTINA')) return '#7B61A8';
+  if(l.includes('VESPERTINA')) return '#D28B00';
+  return ['#003B71','#005DAA','#2E7D50','#1F8EA6','#7B61A8','#C86B1F','#D28B00'][i%7];
+}
+function renderDistributionPanel(targetId, idx){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  let m={};
+  for(const r of current.cov){
+    const k=idText(r[idx])||'Sin dato';
+    m[k]=(m[k]||0)+(r[10]||0);
+  }
+  const total=Object.values(m).reduce((a,b)=>a+b,0);
+  let entries=Object.entries(m).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){
+    el.innerHTML='<div class="dist-empty">No hay datos disponibles con los filtros seleccionados.</div>';
+    return;
+  }
+  el.innerHTML=entries.map(([name,val],i)=>{
+    const p=total?val*100/total:0;
+    const color=distColor(name,i);
+    return `<div class="dist-item">
+      <div class="dist-top"><span class="dist-name"><i style="background:${color}"></i>${name}</span><span class="dist-pct">${pctf(p)}</span></div>
+      <div class="dist-track"><div class="dist-fill" style="width:${Math.max(p,1)}%;background:${color}"></div></div>
+      <div class="dist-meta">${fmt(val)} evaluados</div>
+    </div>`;
+  }).join('');
+}
+function renderInstitutionalDistributions(){
+  renderDistributionPanel('distTipo',4);
+  renderDistributionPanel('distSector',3);
+  renderDistributionPanel('distTanda',5);
+}
+function stackPeriodData(rows,levels,idxLevel,idxVal){const periods=orderPeriod.filter(p=>rows.some(r=>idText(r[6])===p)); return {periods,datasets:levels.map((lv,j)=>({label:lv,data:periods.map(p=>{let sub=rows.filter(r=>idText(r[6])===p),m=aggLevels(sub,levels,idxLevel,idxVal),tot=Object.values(m).reduce((a,b)=>a+b,0);return pct(m[lv],tot)}),backgroundColor:lvColor(lv)}))}}
+function renderBars(){
+  const perfLevels=['Elemental','Aceptable','Satisfactorio'], readLevels=readOrder;
+  let pd=stackPeriodData(current.perf,perfLevels,13,14);
+  const stackedOpts={responsive:true,scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#53657d',font:{weight:'700'}}},y:{stacked:true,max:100,ticks:{callback:v=>v+'%',color:'#53657d'},grid:{color:'rgba(0,59,113,.10)'}}},datasets:{bar:{barPercentage:.54,categoryPercentage:.64,borderRadius:8,borderSkipped:false}},plugins:{legend:{position:'bottom',labels:{boxWidth:14,usePointStyle:true,pointStyle:'rectRounded',padding:14,color:'#425872',font:{weight:'700'}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${pctf(ctx.raw)}`}},datalabels:{color:'#ffffff',textStrokeColor:'rgba(0,35,70,.70)',textStrokeWidth:2,font:{weight:'900',size:10},formatter:v=>v>=6?pctf(v):'',clip:true}}};
+  chart('cDist','bar',{labels:pd.periods,datasets:pd.datasets.map(ds=>({...ds,borderColor:'#fff',borderWidth:1.5}))},stackedOpts);
+  let rd=stackPeriodData(current.read,readLevels,9,10);
+  chart('cRead','bar',{labels:rd.periods,datasets:rd.datasets.map(ds=>({...ds,borderColor:'#fff',borderWidth:1.5}))},stackedOpts);
+  renderGradeAreaCharts();
+}
+function groupPct(rows,groups,groupFn,levels,idxL,idxV){return levels.map(lv=>({label:lv,data:groups.map(g=>{let sub=rows.filter(r=>groupFn(r)===g),m=aggLevels(sub,levels,idxL,idxV),tot=Object.values(m).reduce((a,b)=>a+b,0);return pct(m[lv],tot)}),backgroundColor:lvColor(lv),borderColor:'#fff',borderWidth:1,borderRadius:4}));}function lvColor(lv){return {'Elemental':C.E,'Aceptable':C.A,'Satisfactorio':C.S,'Lector de imágenes':C.N1,'Lector de sílabas':C.N2,'Lector de palabras':C.N3,'Lector no fluido':C.N4,'Lector fluido':C.N5}[lv]||'#005DAA'}function contrastForDataset(label){return '#fff'}
+function barLabelOptions(threshold=0){return {display:true,anchor:'end',align:'top',offset:3,clamp:true,clip:false,color:'#003B71',textStrokeWidth:0,backgroundColor:'rgba(255,255,255,.95)',borderColor:'rgba(0,59,113,.20)',borderWidth:1,borderRadius:5,padding:{top:1,bottom:1,left:4,right:4},font:{weight:'850',size:9},formatter:v=>v>0?pctf(v):''};}
+function renderGradeAreaCharts(){let labelOpt=barLabelOptions(0); let gs=orderGrade.filter(g=>current.perf.some(r=>gradeOf(r)===g)); chart('cGrade','bar',{labels:gs.map(g=>gradeName[g]),datasets:groupPct(current.perf,gs,r=>gradeOf(r),['Elemental','Aceptable','Satisfactorio'],13,14)},{scales:{y:{max:100,ticks:{callback:v=>v+'%'}}},layout:{padding:{top:18}},plugins:{datalabels:labelOpt}}); let areas=orderArea.filter(a=>current.perf.some(r=>idText(r[9])===a)); chart('cArea','bar',{labels:areas,datasets:groupPct(current.perf,areas,r=>idText(r[9]),['Elemental','Aceptable','Satisfactorio'],13,14)},{scales:{y:{max:100,ticks:{callback:v=>v+'%'}}},layout:{padding:{top:18}},plugins:{datalabels:labelOpt}}); let gr=orderGrade.filter(g=>current.read.some(r=>gradeOf(r)===g)); chart('cReadGrade','bar',{labels:gr.map(g=>gradeName[g]),datasets:groupPct(current.read,gr,r=>gradeOf(r),readOrder,9,10)},{scales:{x:{stacked:true},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{datalabels:{color:ctx=>contrastForDataset(ctx.dataset.label),textStrokeWidth:0,font:{weight:'850',size:10},formatter:v=>v>=8?pctf(v):''}}}); chart('cEvolPerf','line',{labels:orderPeriod.filter(p=>current.perf.some(r=>idText(r[6])===p)),datasets:groupPct(current.perf,orderPeriod.filter(p=>current.perf.some(r=>idText(r[6])===p)),r=>idText(r[6]),['Elemental','Aceptable','Satisfactorio'],13,14).map(ds=>({...ds,borderColor:ds.backgroundColor,backgroundColor:ds.backgroundColor+'22',tension:.35,fill:false}))},{plugins:{datalabels:{display:false}},scales:{y:{max:100,ticks:{callback:v=>v+'%'}}}}); chart('cEvolRead','line',{labels:orderPeriod.filter(p=>current.read.some(r=>idText(r[6])===p)),datasets:groupPct(current.read,orderPeriod.filter(p=>current.read.some(r=>idText(r[6])===p)),r=>idText(r[6]),readOrder,9,10).map(ds=>({...ds,borderColor:ds.backgroundColor,backgroundColor:ds.backgroundColor+'22',tension:.35,fill:false}))},{plugins:{datalabels:{display:false}},scales:{y:{max:100,ticks:{callback:v=>v+'%'}}}}); renderHorizontalEvolution();}
+
+function renderHorizontalEvolution(){
+  const perfLevels=['Elemental','Aceptable','Satisfactorio'];
+  const periodsPerf=orderPeriod.filter(p=>current.perf.some(r=>idText(r[6])===p));
+  const periodsRead=orderPeriod.filter(p=>current.read.some(r=>idText(r[6])===p));
+  const hOpts={
+    indexAxis:'y',
+    responsive:true,
+    scales:{
+      x:{stacked:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,59,113,.10)'}},
+      y:{stacked:true,grid:{display:false},ticks:{color:'#53657d',font:{weight:'700'}}}
+    },
+    datasets:{bar:{barPercentage:.62,categoryPercentage:.72,borderRadius:7,borderSkipped:false}},
+    plugins:{
+      legend:{position:'bottom',labels:{boxWidth:14,padding:12,color:'#425872',font:{weight:'700'}}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${pctf(ctx.raw)}`}},
+      datalabels:{color:'#fff',textStrokeColor:'rgba(0,35,70,.70)',textStrokeWidth:2,font:{weight:'900',size:10},formatter:v=>v>=6?pctf(v):'',clip:true}
+    }
+  };
+  chart('cEvolPerfH','bar',{labels:periodsPerf,datasets:groupPct(current.perf,periodsPerf,r=>idText(r[6]),perfLevels,13,14)},hOpts);
+  chart('cEvolReadH','bar',{labels:periodsRead,datasets:groupPct(current.read,periodsRead,r=>idText(r[6]),readOrder,9,10)},hOpts);
+}
+
+function renderTables(){renderLectTable(); renderRanks();}
+function renderLectTable(){let groups={}; for(const r of current.read){let g=gradeOf(r),p=idText(r[6]); if(!g||!p)continue; let k=g+'|'+p; groups[k]=groups[k]||[]; groups[k].push(r)} let entries=Object.entries(groups).sort((a,b)=>{let [ga,pa]=a[0].split('|'),[gb,pb]=b[0].split('|'); return (+ga-+gb)||(orderPeriod.indexOf(pa)-orderPeriod.indexOf(pb));}); let lastGrade=null; let rows=entries.map(([k,arr])=>{let [g,p]=k.split('|'),m=aggLevels(arr,readOrder,9,10),tot=Object.values(m).reduce((a,b)=>a+b,0);let sep=(g!==lastGrade); lastGrade=g; return `<tr class="${sep?'grade-separator':''}"><td>${gradeName[+g]||'Sin grado'}</td><td>${p}</td>${readOrder.map(l=>`<td class="right">${pctf(pct(m[l],tot))}</td>`).join('')}<td class="right">${fmt(tot)}</td></tr>`}).join(''); if(!rows)rows='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px">No hay datos de lectura para los filtros seleccionados.</td></tr>'; tLect.innerHTML=`<thead><tr><th>Grado</th><th>Periodo</th>${readOrder.map(l=>`<th class="right">${l}</th>`).join('')}<th class="right">Total</th></tr></thead><tbody>${rows}</tbody>`}
+function breachIndex(pE,pS){return (pE*0.6)+((100-pS)*0.4);}
+function rankStatus(indice,evaluados){let base=''; if(evaluados>0&&evaluados<10)base=' · baja base'; else if(evaluados>=10&&evaluados<30)base=' · cautela'; if(indice>=50)return ['low','Prioridad alta'+base]; if(indice>=40)return ['mid','Atención moderada'+base]; return ['high','Avance favorable'+base];}
+const rankSortState={tReg:{col:2,dir:'desc'},tDist:{col:2,dir:'desc'},tCentro:{col:2,dir:'desc'}};
+function setRankSort(tableId,col){const s=rankSortState[tableId]||(rankSortState[tableId]={col:2,dir:'desc'}); if(s.col===col)s.dir=s.dir==='asc'?'desc':'asc'; else{s.col=col; s.dir=(col===0||col===6)?'asc':'desc'} renderRanks();}
+function rankSortValue(r,col){if(col===0)return r.k||''; if(col===1)return r.ev||0; if(col===2)return r.idxB||0; if(col===3)return r.pe||0; if(col===4)return r.pa||0; if(col===5)return r.ps||0; if(col===6)return (r.st&&r.st[1])||''; return 0;}
+function sortRankRows(arr,tableId){const s=rankSortState[tableId]||{col:2,dir:'desc'}; return [...arr].sort((a,b)=>{let va=rankSortValue(a,s.col),vb=rankSortValue(b,s.col); let c=(typeof va==='string'||typeof vb==='string')?String(va).localeCompare(String(vb),'es',{numeric:true}):(va-vb); if(c===0)c=(b.idxB-a.idxB)||(b.pe-a.pe)||(a.ps-b.ps); return s.dir==='asc'?c:-c;});}
+function rankHeader(tableId,col,text){const s=rankSortState[tableId]||{col:2,dir:'desc'}; const mark=s.col===col?(s.dir==='asc'?'▲':'▼'):'↕'; const cls=s.col===col?'':'unsorted'; return `<th class="sortable" onclick="setRankSort('${tableId}',${col})" title="Ordenar por ${text}">${text}<span class="sortmark ${cls}">${mark}</span></th>`;}
+function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of current.perf){let k=idText(r[idx]); perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)} for(const r of current.cov){let k=idText(r[idx]); covMap[k]=(covMap[k]||0)+r[10]} let arr=Object.entries(perfMap).map(([k,rows])=>{let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],13,14),tot=m.Elemental+m.Aceptable+m.Satisfactorio,pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);return {k,ev,pe,pa,ps,idxB,st}}); arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${r.idxB.toFixed(2)}</td><td class="num red">${pctf(r.pe)}</td><td class="num amber">${pctf(r.pa)}</td><td class="num green">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span></td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`}
+function renderRanks(){renderRankTable('tReg',0,'Regional');renderRankTable('tDist',1,'Distrito');renderRankTable('tCentro',2,'Centro educativo')}
+const matrixSortState={col:0,dir:'asc'};
+function matrixAgg(mode){const rows=mode==='perf'?current.perf:current.read, levels=mode==='perf'?['Elemental','Aceptable','Satisfactorio']:readOrder, idxL=mode==='perf'?13:9, idxV=mode==='perf'?14:10; let m={}; for(const r of rows){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; for(let depth=1;depth<=3;depth++){let k=path.slice(0,depth).join('|'); if(!m[k])m[k]={name:path[depth-1],depth,vals:Object.fromEntries(levels.map(l=>[l,0])),children:new Set()}; m[k].vals[idText(r[idxL])] += r[idxV]; if(depth>1)m[path.slice(0,depth-1).join('|')].children.add(k)}} let ev={}; for(const r of current.cov){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; for(let d=1;d<=3;d++){let k=path.slice(0,d).join('|'); ev[k]=(ev[k]||0)+r[10]}} return {m,ev,levels};}
+function matrixMetric(A,k,col){let o=A.m[k]; if(!o)return 0; if(col===0)return o.name||''; if(col===1)return A.ev[k]||0; const tot=Object.values(o.vals).reduce((a,b)=>a+b,0); return pct(o.vals[A.levels[col-2]]||0,tot);}
+function setMatrixSort(col){if(matrixSortState.col===col)matrixSortState.dir=matrixSortState.dir==='asc'?'desc':'asc';else{matrixSortState.col=col;matrixSortState.dir=col===0?'asc':'desc'}renderMatrix();}
+function sortMatrixKeys(keys,A){const col=matrixSortState.col, dir=matrixSortState.dir; return [...keys].sort((a,b)=>{let va=matrixMetric(A,a,col), vb=matrixMetric(A,b,col); let c=(col===0)?String(va).localeCompare(String(vb),'es',{numeric:true}):(va-vb); return dir==='asc'?c:-c;});}
+function renderMatrix(){const mode=matrixMode.value, q=matrixSearch.value.toLowerCase(), A=matrixAgg(mode), cls=mode==='perf'?'matrix-perf':'matrix-read'; const heads=mode==='perf'?['Institución','Evaluados','% Elemental','% Aceptable','% Satisfactorio']:['Institución','Evaluados',...readOrder]; function cells(k){let o=A.m[k],tot=Object.values(o.vals).reduce((a,b)=>a+b,0);return `<div class="metric"><span class="num">${fmt(A.ev[k]||0)}</span></div>`+A.levels.map(l=>{let p=pct(o.vals[l],tot);return `<div class="metric"><span class="num">${pctf(p)}</span><div class="bar"><div class="fill" style="width:${p}%;background:${lvColor(l)}"></div></div></div>`}).join('')} function node(k){let o=A.m[k]; let child=sortMatrixKeys([...o.children],A).map(node).join(''); let row=`<div class="matrix-row"><div><span class="inst"><span class="inst-name">${o.name}</span></span></div>${cells(k)}</div>`; if(o.depth<3)return `<details class="mx ${o.depth===1?'mx-reg':'mx-dist'}"><summary>${row}</summary>${child}</details>`; return `<div class="mx-center">${row}</div>`} let roots=sortMatrixKeys(Object.keys(A.m).filter(k=>A.m[k].depth===1),A); if(q)roots=roots.filter(k=>k.toLowerCase().includes(q)||[...A.m[k].children].some(c=>c.toLowerCase().includes(q)||[...A.m[c].children].some(cc=>cc.toLowerCase().includes(q)))); const headHtml=heads.map((h,i)=>`<div onclick="setMatrixSort(${i})" title="Ordenar por ${h}">${h}<span class="sortmark ${matrixSortState.col===i?'':'unsorted'}">${matrixSortState.col===i?(matrixSortState.dir==='asc'?'▲':'▼'):'↕'}</span></div>`).join(''); matrix.innerHTML=`<div class="matrix-shell ${cls}"><div class="matrix-row matrix-head">${headHtml}</div>${roots.map(node).join('')}</div>`}
+function resetFilters(){['fRegional','fDistrito','fSector','fTipo','fTanda','fGrado','fArea','fComp','fIndicador'].forEach(id=>document.getElementById(id).value=''); fCentro.value=''; fCentro.dataset.selected=''; selectedPeriod=latestPeriod()||'__ALL__'; buildPeriodButtons(); rebuildDependentFilters(); apply();}
+function showPane(id,btn){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setTimeout(()=>Object.values(charts).forEach(c=>{c.resize();c.update('none');}),120)}
+function csvCell(v){
+  if(v==null) return '';
+  let s=String(v);
+  if(/["\n,;]/.test(s)) s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function downloadCSV(filename, rows){
+  const csv=rows.map(r=>r.map(csvCell).join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function addDistributionRows(out, seccion, agrupacion, rows, groupFn, levels, idxL, idxV){
+  const groups=[...new Set(rows.map(groupFn).filter(Boolean))].sort((a,b)=>{
+    const pa=orderPeriod.indexOf(a), pb=orderPeriod.indexOf(b);
+    if(pa>=0||pb>=0) return (pa<0?999:pa)-(pb<0?999:pb);
+    const ga=Object.values(gradeName).indexOf(a), gb=Object.values(gradeName).indexOf(b);
+    if(ga>=0||gb>=0) return (ga<0?999:ga)-(gb<0?999:gb);
+    return String(a).localeCompare(String(b),'es',{numeric:true});
+  });
+  for(const g of groups){
+    const sub=rows.filter(r=>groupFn(r)===g);
+    const m=aggLevels(sub,levels,idxL,idxV);
+    const tot=Object.values(m).reduce((a,b)=>a+b,0);
+    for(const lv of levels){out.push([seccion,agrupacion,g,'',lv,'','',m[lv]||0,pct(m[lv]||0,tot).toFixed(2),'','','']);}
+  }
+}
+function addCoverageRows(out){
+  const by={};
+  for(const r of current.cov){
+    const p=idText(r[6]);
+    by[p]=by[p]||{mat:0,ev:0,regs:new Set(),dists:new Set(),cent:new Set()};
+    by[p].mat+=r[9]; by[p].ev+=r[10]; by[p].regs.add(r[0]); by[p].dists.add(r[1]); by[p].cent.add(r[2]);
+  }
+  for(const p of orderPeriod.filter(p=>by[p])){
+    const x=by[p];
+    out.push(['Cobertura','Periodo',p,'','','',x.mat,x.ev,'',pct(x.ev,x.mat).toFixed(2),'','']);
+    out.push(['Cobertura','Regionales',p,'','','','',x.regs.size,'','','','']);
+    out.push(['Cobertura','Distritos',p,'','','','',x.dists.size,'','','','']);
+    out.push(['Cobertura','Centros',p,'','','','',x.cent.size,'','','','']);
+  }
+}
+function breachRows(idx,label){
+  let perfMap={}, covMap={};
+  for(const r of current.perf){let k=idText(r[idx]); perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)}
+  for(const r of current.cov){let k=idText(r[idx]); covMap[k]=(covMap[k]||0)+r[10]}
+  return Object.entries(perfMap).map(([k,rows])=>{
+    let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],13,14),tot=m.Elemental+m.Aceptable+m.Satisfactorio;
+    let pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);
+    return {label,k,ev,pe,pa,ps,idxB,estado:st[1]};
+  }).sort((a,b)=>b.idxB-a.idxB);
+}
+function exportResumen(){
+  const rows=[['Seccion','Agrupacion','Unidad','Periodo','Nivel','Matricula','Evaluados','Valor','Porcentaje','Indice_priorizacion','Estado','Filtros_aplicados']];
+  const f=current.f||filters();
+  const ftxt=`Periodos: ${getSelectedPeriods().join(' | ')}; Regional: ${f.reg||'Todas'}; Distrito: ${f.dist||'Todos'}; Centro: ${f.centro||f.centroText||'Todos'}; Sector: ${f.sec||'Todos'}; Tipo: ${f.tipo||'Todos'}; Tanda: ${f.tanda||'Todas'}; Grado: ${f.g?gradeName[f.g]:'Todos'}; Área: ${f.area||'Todas'}; Competencia: ${f.comp||'Todas'}; Indicador: ${f.ind||'Todos'}`;
+  addCoverageRows(rows);
+  addDistributionRows(rows,'Desempeño','Periodo',current.perf,r=>idText(r[6]),['Elemental','Aceptable','Satisfactorio'],13,14);
+  addDistributionRows(rows,'Desempeño','Grado',current.perf,r=>gradeName[gradeOf(r)]||'Sin grado',['Elemental','Aceptable','Satisfactorio'],13,14);
+  addDistributionRows(rows,'Desempeño','Área',current.perf,r=>idText(r[9]),['Elemental','Aceptable','Satisfactorio'],13,14);
+  addDistributionRows(rows,'Lectura','Periodo',current.read,r=>idText(r[6]),readOrder,9,10);
+  addDistributionRows(rows,'Lectura','Grado',current.read,r=>gradeName[gradeOf(r)]||'Sin grado',readOrder,9,10);
+  for(const table of [breachRows(0,'Regional'),breachRows(1,'Distrito'),breachRows(2,'Centro educativo')]){for(const r of table){rows.push(['Brechas',r.label,r.k,'','','',r.ev,'','',r.idxB.toFixed(2),r.estado,ftxt]);}}
+  for(let i=1;i<rows.length;i++) if(!rows[i][11]) rows[i][11]=ftxt;
+  downloadCSV('sirev_datos_visibles_filtrados.csv',rows);
+}
+window.addEventListener('load',loadData);
+</script>
+</body>
+</html>
