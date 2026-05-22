@@ -417,6 +417,47 @@ header{position:relative!important;top:auto!important;}
   .summary-unified .gauge-card{grid-template-columns:1fr;text-align:center;}
 }
 
+
+/* v36: tarjeta de índice de priorización y colores corregidos en Brechas */
+#generalIndicators.priority-active{
+  grid-template-columns:repeat(4,minmax(150px,1fr))!important;
+}
+.summary-unified .indicator-card.priority{
+  border-top-color:#5B4B8A;
+}
+.summary-unified .indicator-card.priority.high{
+  border-top-color:#2E7D32;
+}
+.summary-unified .indicator-card.priority.mid{
+  border-top-color:#F2A900;
+}
+.summary-unified .indicator-card.priority.low{
+  border-top-color:#C8102E;
+}
+.indicator-card.priority .indicator-meter span{
+  background:linear-gradient(90deg,#003B71,#5B4B8A);
+}
+.indicator-card.priority.high .indicator-meter span{
+  background:linear-gradient(90deg,#2E7D32,#0E7C86);
+}
+.indicator-card.priority.mid .indicator-meter span{
+  background:linear-gradient(90deg,#F2A900,#C47C00);
+}
+.indicator-card.priority.low .indicator-meter span{
+  background:linear-gradient(90deg,#C8102E,#8A1111);
+}
+
+/* Brechas: Elemental en rojo y Satisfactorio en azul */
+#brechas .brecha-elemental{color:#C8102E!important;font-weight:750;}
+#brechas .brecha-aceptable{color:#20279A!important;font-weight:750;}
+#brechas .brecha-satisfactorio{color:#005DAA!important;font-weight:750;}
+@media(max-width:1200px){
+  #generalIndicators.priority-active{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:760px){
+  #generalIndicators.priority-active{grid-template-columns:1fr!important;}
+}
+
 </style>
 </head>
 <body>
@@ -586,11 +627,19 @@ function renderCoverage(){
   renderPublicGauge();
 }
 
+function selectedPriorityScope(f){
+  if(f.centro) return {active:true, label:'Centro educativo', name:f.centro};
+  if(f.dist) return {active:true, label:'Distrito', name:f.dist};
+  if(f.reg) return {active:true, label:'Regional', name:f.reg};
+  return {active:false, label:'', name:''};
+}
 function renderGeneralIndicators(){
   if(!window.generalIndicators) return;
   const cov=covAgg(current.cov);
   const perf=aggLevels(current.perf,['Elemental','Aceptable','Satisfactorio'],12,13);
   const perfTotal=perf.Elemental+perf.Aceptable+perf.Satisfactorio;
+  const pe=pct(perf.Elemental,perfTotal);
+  const ps=pct(perf.Satisfactorio,perfTotal);
   const aceptSat=perf.Aceptable+perf.Satisfactorio;
   const aceptSatPct=pct(aceptSat,perfTotal);
   const aceptSatEst=Math.round((cov.ev||0) * aceptSatPct / 100);
@@ -602,7 +651,24 @@ function renderGeneralIndicators(){
   const fluidoPct=pct(fluido,readTotal);
   const noFluidoPct=pct(noFluido,readTotal);
 
+  const scope=selectedPriorityScope(current.f||filters());
+  let priorityCard='';
+  generalIndicators.classList.toggle('priority-active',scope.active);
+  if(scope.active){
+    const indice=breachIndex(pe,ps);
+    const st=rankStatus(indice,cov.ev||0);
+    const meter=Math.max(0,Math.min(100,indice));
+    priorityCard=`
+    <div class="indicator-card priority ${st[0]}">
+      <small>Índice de priorización</small>
+      <div class="val">${indice.toFixed(2)}</div>
+      <div class="det">${scope.label}: ${scope.name}. ${st[1]}.</div>
+      <div class="indicator-meter"><span style="width:${meter}%"></span></div>
+    </div>`;
+  }
+
   generalIndicators.innerHTML=`
+    ${priorityCard}
     <div class="indicator-card good">
       <small>Aceptable + satisfactorio</small>
       <div class="val">${pctf(aceptSatPct)}</div>
@@ -743,7 +809,7 @@ function setRankSort(tableId,col){const s=rankSortState[tableId]||(rankSortState
 function rankSortValue(r,col){if(col===0)return r.k||''; if(col===1)return r.ev||0; if(col===2)return r.idxB||0; if(col===3)return r.pe||0; if(col===4)return r.pa||0; if(col===5)return r.ps||0; if(col===6)return (r.st&&r.st[1])||''; return 0;}
 function sortRankRows(arr,tableId){const s=rankSortState[tableId]||{col:2,dir:'desc'}; return [...arr].sort((a,b)=>{let va=rankSortValue(a,s.col),vb=rankSortValue(b,s.col); let c=(typeof va==='string'||typeof vb==='string')?String(va).localeCompare(String(vb),'es',{numeric:true}):(va-vb); if(c===0)c=(b.idxB-a.idxB)||(b.pe-a.pe)||(a.ps-b.ps); return s.dir==='asc'?c:-c;});}
 function rankHeader(tableId,col,text){const s=rankSortState[tableId]||{col:2,dir:'desc'}; const mark=s.col===col?(s.dir==='asc'?'▲':'▼'):'↕'; const cls=s.col===col?'':'unsorted'; return `<th class="sortable" onclick="setRankSort('${tableId}',${col})" title="Ordenar por ${text}">${text}<span class="sortmark ${cls}">${mark}</span></th>`;}
-function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of current.perf){let k=idText(r[idx]); perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)} for(const r of current.cov){let k=idText(r[idx]); covMap[k]=(covMap[k]||0)+r[10]} let arr=Object.entries(perfMap).map(([k,rows])=>{let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13),tot=m.Elemental+m.Aceptable+m.Satisfactorio,pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);return {k,ev,pe,pa,ps,idxB,st}}); arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${r.idxB.toFixed(2)}</td><td class="num red">${pctf(r.pe)}</td><td class="num amber">${pctf(r.pa)}</td><td class="num green">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span></td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`}
+function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of current.perf){let k=idText(r[idx]); perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)} for(const r of current.cov){let k=idText(r[idx]); covMap[k]=(covMap[k]||0)+r[10]} let arr=Object.entries(perfMap).map(([k,rows])=>{let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13),tot=m.Elemental+m.Aceptable+m.Satisfactorio,pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);return {k,ev,pe,pa,ps,idxB,st}}); arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${r.idxB.toFixed(2)}</td><td class="num brecha-elemental">${pctf(r.pe)}</td><td class="num brecha-aceptable">${pctf(r.pa)}</td><td class="num brecha-satisfactorio">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span></td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`}
 function renderRanks(){renderRankTable('tReg',0,'Regional');renderRankTable('tDist',1,'Distrito');renderRankTable('tCentro',2,'Centro educativo')}
 const matrixSortState={col:0,dir:'asc'};
 function matrixAgg(mode){const rows=mode==='perf'?current.perf:current.read, levels=mode==='perf'?['Elemental','Aceptable','Satisfactorio']:readOrder, idxL=mode==='perf'?12:9, idxV=mode==='perf'?13:10; let m={}; for(const r of rows){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; for(let depth=1;depth<=3;depth++){let k=path.slice(0,depth).join('|'); if(!m[k])m[k]={name:path[depth-1],depth,vals:Object.fromEntries(levels.map(l=>[l,0])),children:new Set()}; m[k].vals[idText(r[idxL])] += r[idxV]; if(depth>1)m[path.slice(0,depth-1).join('|')].children.add(k)}} let ev={}; for(const r of current.cov){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; for(let d=1;d<=3;d++){let k=path.slice(0,d).join('|'); ev[k]=(ev[k]||0)+r[10]}} return {m,ev,levels};}
