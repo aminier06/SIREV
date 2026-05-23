@@ -158,9 +158,20 @@ button{font:inherit}
     box-shadow:0 8px 22px rgba(0,23,51,.16);
     transition:transform .12s ease,background .12s ease,border-color .12s ease;
 }
-.nav-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.42)}
-.nav-btn.primary{background:#fff;color:var(--azul);border-color:#fff}
-.nav-btn .chev{font-size:.85rem;opacity:.86}
+.nav-btn:hover{
+    transform:translateY(-1px);
+    background:rgba(255,255,255,.18);
+    border-color:rgba(255,255,255,.42);
+}
+.nav-btn.primary{
+    background:#fff;
+    color:var(--azul);
+    border-color:#fff;
+}
+.nav-btn .chev{
+    font-size:.85rem;
+    opacity:.86;
+}
 .dropdown-content{
     display:none;
     position:absolute;
@@ -191,9 +202,18 @@ button{font:inherit}
     font-weight:750;
     border-bottom:1px solid #edf2f7;
 }
-.dropdown-content button:last-child,.dropdown-content span:last-child{border-bottom:0}
-.dropdown-content button:hover{background:var(--azul-claro);color:var(--azul)}
-.dropdown-content span{color:#98a6b5;cursor:default}
+.dropdown-content button:last-child,
+.dropdown-content span:last-child{
+    border-bottom:0;
+}
+.dropdown-content button:hover{
+    background:var(--azul-claro);
+    color:var(--azul);
+}
+.dropdown-content span{
+    color:#98a6b5;
+    cursor:default;
+}
 .nav-spacer{flex:1}
 .quick-note{
     color:#eaf5ff;
@@ -239,7 +259,13 @@ main{
     letter-spacing:.06em;
     margin-bottom:.2rem;
 }
-.resource-eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dorado)}
+.resource-eyebrow::before{
+    content:"";
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--dorado);
+}
 .resource-head h2{
     color:var(--azul);
     font-size:1.12rem;
@@ -265,7 +291,13 @@ main{
     font-weight:850;
     white-space:nowrap;
 }
-.status-pill::before{content:"";width:8px;height:8px;background:var(--rojo);border-radius:50%}
+.status-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    background:var(--rojo);
+    border-radius:50%;
+}
 .report-container{
     width:100%;
     min-height:0;
@@ -301,22 +333,60 @@ iframe{
 .footer strong{color:var(--azul)}
 
 @media(max-width:900px){
-    .header-inner{grid-template-columns:auto 1fr;align-items:center}
-    .year-pill{grid-column:1 / -1;justify-self:start}
-    .nav-inner{display:grid;grid-template-columns:1fr;gap:.6rem}
-    .dropdown,.nav-btn{width:100%}
-    .nav-btn{justify-content:space-between}
-    .nav-spacer,.quick-note{display:none}
-    .resource-head{grid-template-columns:1fr}
-    .status-pill{justify-self:start}
-    iframe{min-height:640px;height:75vh}
+    .header-inner{
+        grid-template-columns:auto 1fr;
+        align-items:center;
+    }
+    .year-pill{
+        grid-column:1 / -1;
+        justify-self:start;
+    }
+    .nav-inner{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:.6rem;
+    }
+    .dropdown,
+    .nav-btn{
+        width:100%;
+    }
+    .nav-btn{
+        justify-content:space-between;
+    }
+    .nav-spacer,
+    .quick-note{
+        display:none;
+    }
+    .resource-head{
+        grid-template-columns:1fr;
+    }
+    .status-pill{
+        justify-self:start;
+    }
+    iframe{
+        min-height:640px;
+        height:75vh;
+    }
 }
 @media(max-width:560px){
-    .header-inner{grid-template-columns:1fr;text-align:center}
-    .logo-card{margin:0 auto;width:76px;height:76px}
-    .brand-kicker{justify-content:center}
-    .year-pill{justify-self:center}
-    main{padding:.9rem .8rem 1.3rem}
+    .header-inner{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+    .logo-card{
+        margin:0 auto;
+        width:76px;
+        height:76px;
+    }
+    .brand-kicker{
+        justify-content:center;
+    }
+    .year-pill{
+        justify-self:center;
+    }
+    main{
+        padding:.9rem .8rem 1.3rem;
+    }
 }
 </style>
 </head>
@@ -343,7 +413,9 @@ iframe{
     <nav class="nav-band" aria-label="Navegación principal de SIREV Primaria">
         <div class="nav-inner">
             <div class="dropdown">
-                <button class="nav-btn" onclick="toggleMenu('menuAnio', event)">Año escolar <span class="chev">▼</span></button>
+                <button class="nav-btn" onclick="toggleMenu('menuAnio', event)">
+                    Año escolar <span class="chev">▼</span>
+                </button>
                 <div id="menuAnio" class="dropdown-content">
                     <button onclick="seleccionarAnio('2025-2026')">2025-2026</button>
                     <button onclick="seleccionarAnio('2026-2027')">2026-2027</button>
@@ -351,7 +423,9 @@ iframe{
             </div>
 
             <div class="dropdown">
-                <button class="nav-btn primary" onclick="toggleMenu('menuDashboards', event)">Dashboards <span class="chev">▼</span></button>
+                <button class="nav-btn primary" onclick="toggleMenu('menuDashboards', event)">
+                    Dashboards <span class="chev">▼</span>
+                </button>
                 <div id="menuDashboards" class="dropdown-content">
                     <button onclick="abrirDashboard('sirevInteractivo')">Dashboard interactivo SIREV</button>
                     <button onclick="abrirDashboard('powerbi')">Informe Power BI</button>
@@ -359,7 +433,9 @@ iframe{
             </div>
 
             <div class="dropdown">
-                <button class="nav-btn" onclick="toggleMenu('menuPruebas', event)">Pruebas y rúbricas <span class="chev">▼</span></button>
+                <button class="nav-btn" onclick="toggleMenu('menuPruebas', event)">
+                    Pruebas y rúbricas <span class="chev">▼</span>
+                </button>
                 <div id="menuPruebas" class="dropdown-content">
                     <button onclick="abrirRecurso('pruebas','septiembre')">Septiembre</button>
                     <button onclick="abrirRecurso('pruebas','noviembre')">Noviembre</button>
@@ -369,7 +445,9 @@ iframe{
             </div>
 
             <div class="dropdown">
-                <button class="nav-btn" onclick="toggleMenu('menuSistematizacion', event)">Sistematización <span class="chev">▼</span></button>
+                <button class="nav-btn" onclick="toggleMenu('menuSistematizacion', event)">
+                    Sistematización <span class="chev">▼</span>
+                </button>
                 <div id="menuSistematizacion" class="dropdown-content">
                     <button onclick="abrirRecurso('sistematizacion','septiembre')">Septiembre</button>
                     <button onclick="abrirRecurso('sistematizacion','noviembre')">Noviembre</button>
@@ -379,7 +457,9 @@ iframe{
             </div>
 
             <div class="dropdown">
-                <button class="nav-btn" onclick="toggleMenu('menuFormularios', event)">Formularios <span class="chev">▼</span></button>
+                <button class="nav-btn" onclick="toggleMenu('menuFormularios', event)">
+                    Registro de resultados <span class="chev">▼</span>
+                </button>
                 <div id="menuFormularios" class="dropdown-content">
                     <button onclick="abrirFormulario('primerCiclo')">Primer ciclo</button>
                     <button onclick="abrirFormulario('segundoCiclo')">Segundo ciclo</button>
@@ -418,7 +498,7 @@ const datosPorAnio = {
             marzo: "https://lookerstudio.google.com/reporting/37283302-62a8-4a76-836d-2e484c186884",
             mayo: ""
         },
-        Registro de resultados: {
+        formularios: {
             primerCiclo: "https://aminier06.github.io/formularioprimerciclo/",
             segundoCiclo: "https://aminier06.github.io/formulariosegundociclo/"
         }
@@ -438,27 +518,36 @@ let dashboardActual = "sirevInteractivo";
 function seleccionarAnio(anio) {
     anioSeleccionado = anio;
     document.getElementById("anioActualTexto").textContent = anio;
-    if (dashboardActual === "sirevInteractivo") abrirDashboard("sirevInteractivo");
-    else abrirDashboard("powerbi");
+
+    if (dashboardActual === "sirevInteractivo") {
+        abrirDashboard("sirevInteractivo");
+    } else {
+        abrirDashboard("powerbi");
+    }
 
     cerrarMenus();
 }
 
 function abrirDashboard(tipo) {
     dashboardActual = tipo;
+
     const visor = document.getElementById("visorInforme");
     const quickNote = document.getElementById("quickNote");
+
     let url = "";
 
     if (tipo === "sirevInteractivo") {
         url = datosPorAnio[anioSeleccionado].dashboard;
+        if (quickNote) quickNote.textContent = "Dashboard interactivo SIREV";
     } else {
         url = datosPorAnio[anioSeleccionado].informe;
-        quickNote.textContent = "Informe general · Power BI";
+        if (quickNote) quickNote.textContent = "Informe general · Power BI";
     }
 
-    if (url) { visor.src = url; setTimeout(ajustarAltoVisor, 500); }
-    else {
+    if (url) {
+        visor.src = url;
+        setTimeout(ajustarAltoVisor, 500);
+    } else {
         visor.src = "about:blank";
         alert("Este recurso no está disponible todavía para el año escolar seleccionado.");
     }
@@ -468,40 +557,57 @@ function abrirDashboard(tipo) {
 
 function abrirRecurso(tipo, mes) {
     const url = datosPorAnio[anioSeleccionado][tipo]?.[mes];
-    if (url) window.open(url, "_blank");
-    else alert("Recurso no disponible para este año escolar.");
+
+    if (url) {
+        window.open(url, "_blank");
+    } else {
+        alert("Recurso no disponible para este año escolar.");
+    }
+
     cerrarMenus();
 }
 
 function abrirFormulario(ciclo) {
     const url = datosPorAnio[anioSeleccionado].formularios?.[ciclo];
-    if (url) window.open(url, "_blank");
-    else alert("Formulario no disponible para este año escolar.");
+
+    if (url) {
+        window.open(url, "_blank");
+    } else {
+        alert("Formulario no disponible para este año escolar.");
+    }
+
     cerrarMenus();
 }
 
 function toggleMenu(id, e) {
     e.stopPropagation();
+
     const menu = document.getElementById(id);
     const estabaAbierto = menu.classList.contains("show");
+
     cerrarMenus();
-    if (!estabaAbierto) menu.classList.add("show");
+
+    if (!estabaAbierto) {
+        menu.classList.add("show");
+    }
 }
 
 function cerrarMenus() {
-    document.querySelectorAll(".dropdown-content").forEach(menu => menu.classList.remove("show"));
+    document.querySelectorAll(".dropdown-content").forEach(menu => {
+        menu.classList.remove("show");
+    });
 }
-
 
 function ajustarAltoVisor() {
     const iframe = document.getElementById("visorInforme");
+
     if (!iframe) return;
+
     try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
+
         if (!doc || !doc.body) return;
 
-        // Evita el espacio en blanco circular: si se mide con un iframe muy alto,
-        // el documento interno puede reportar ese mismo alto como scrollHeight.
         const y = window.scrollY;
         iframe.style.height = "1px";
 
@@ -514,9 +620,11 @@ function ajustarAltoVisor() {
             ].filter(Number.isFinite);
 
             const h = Math.max(...candidates, 620);
+
             iframe.style.height = (h + 8) + "px";
             iframe.style.minHeight = "0";
             iframe.scrolling = "no";
+
             window.scrollTo(window.scrollX, y);
         });
     } catch (e) {
@@ -527,23 +635,29 @@ function ajustarAltoVisor() {
 
 let resizeObserverSirev = null;
 const visorSirev = document.getElementById("visorInforme");
+
 if (visorSirev) {
     visorSirev.addEventListener("load", () => {
         ajustarAltoVisor();
+
         setTimeout(ajustarAltoVisor, 300);
         setTimeout(ajustarAltoVisor, 900);
         setTimeout(ajustarAltoVisor, 1800);
 
         try {
             const doc = visorSirev.contentDocument || visorSirev.contentWindow.document;
-            if (resizeObserverSirev) resizeObserverSirev.disconnect();
+
+            if (resizeObserverSirev) {
+                resizeObserverSirev.disconnect();
+            }
+
             resizeObserverSirev = new ResizeObserver(() => ajustarAltoVisor());
             resizeObserverSirev.observe(doc.body);
         } catch (e) {}
     });
 }
-window.addEventListener("resize", ajustarAltoVisor);
 
+window.addEventListener("resize", ajustarAltoVisor);
 document.addEventListener("click", cerrarMenus);
 </script>
 </body>
