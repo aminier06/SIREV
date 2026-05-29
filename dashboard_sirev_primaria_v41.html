@@ -502,7 +502,7 @@ let selectedPeriod=''; // Por defecto se inicializa con el último periodo dispo
 const orderPeriod=['Septiembre','Noviembre','Marzo','Mayo'], orderArea=['Lengua Española','Matemática','Ciencias Sociales','Ciencias de la Naturaleza'], orderGrade=[1,2,3,4,5,6], gradeName={1:'Primero',2:'Segundo',3:'Tercero',4:'Cuarto',5:'Quinto',6:'Sexto'};
 const readOrder=['Lector de imágenes','Lector de sílabas','Lector de palabras','Lector no fluido','Lector fluido'];
 let DATA,D,PERF_BASE=[],PERF_COMP=[],PERF_IND=null,READ,COV,charts={},current={},IND_LOADING=false;
-function fmt(n){return Math.round(n||0).toLocaleString('es-DO')} function pct(n,d){return d?100*n/d:0} function pctf(x){return (x||0).toFixed(2)+'%'} function idText(id){return (typeof id==='number' && D && D[id]!==undefined)?D[id]:''}
+function fmt(n){return Math.round(n||0).toLocaleString('es-DO')} function pct(n,d){return d?100*n/d:0} function pctf(x){return (x||0).toFixed(2)+'%'} function idText(id){return (typeof id==='number' && D && D[id]!==undefined)?D[id]:String(id===null||id===undefined?'':id)}
 function parseGrade(v){
   if(typeof v==='number'&&v>=1&&v<=6)return v;
   let t=(typeof v==='number'&&D&&D[v]!==undefined)?D[v]:String(v||'');
