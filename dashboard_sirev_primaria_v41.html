@@ -738,6 +738,15 @@ function renderGeneralIndicators(){
     }
   }
 
+  const f2=current.f||filters();
+  const soloSegundoCiclo=(f2.ciclo===2)||(f2.g&&f2.g>=4);
+  const readFluidoHtml=soloSegundoCiclo
+    ?`<div class="indicator-card read"><small>Lector fluido</small><div class="val" style="color:#94a3b8;font-size:22px">N/A</div><div class="det" style="color:#94a3b8">No aplica para 4to–6to grado.</div></div>`
+    :`<div class="indicator-card read"><small>Lector fluido</small><div class="val">${pctf(fluidoPct)}</div><div class="det">${fmt(fluido)} estudiantes en nivel lector fluido.</div><div class="indicator-meter"><span style="width:${Math.min(100,fluidoPct)}%"></span></div></div>`;
+  const readNoFluidoHtml=soloSegundoCiclo
+    ?`<div class="indicator-card caution"><small>Lector no fluido</small><div class="val" style="color:#94a3b8;font-size:22px">N/A</div><div class="det" style="color:#94a3b8">No aplica para 4to–6to grado.</div></div>`
+    :`<div class="indicator-card caution"><small>Lector no fluido</small><div class="val">${pctf(noFluidoPct)}</div><div class="det">${fmt(noFluido)} estudiantes en nivel lector no fluido.</div><div class="indicator-meter"><span style="width:${Math.min(100,noFluidoPct)}%"></span></div></div>`;
+
   generalIndicators.innerHTML=`
     ${priorityHtml}
     <div class="indicator-card good">
@@ -746,18 +755,8 @@ function renderGeneralIndicators(){
       <div class="det">${fmt(aceptSatEst)} estudiantes en niveles Aceptable o Satisfactorio.</div>
       <div class="indicator-meter"><span style="width:${Math.min(100,aceptSatPct)}%"></span></div>
     </div>
-    <div class="indicator-card read">
-      <small>Lector fluido</small>
-      <div class="val">${pctf(fluidoPct)}</div>
-      <div class="det">${fmt(fluido)} estudiantes en nivel lector fluido.</div>
-      <div class="indicator-meter"><span style="width:${Math.min(100,fluidoPct)}%"></span></div>
-    </div>
-    <div class="indicator-card caution">
-      <small>Lector no fluido</small>
-      <div class="val">${pctf(noFluidoPct)}</div>
-      <div class="det">${fmt(noFluido)} estudiantes en nivel lector no fluido.</div>
-      <div class="indicator-meter"><span style="width:${Math.min(100,noFluidoPct)}%"></span></div>
-    </div>`;
+    ${readFluidoHtml}
+    ${readNoFluidoHtml}`;
 }
 function chart(id,type,data,options={}){
   if(charts[id])charts[id].destroy();
