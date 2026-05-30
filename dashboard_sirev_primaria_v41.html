@@ -750,8 +750,9 @@ function getSelectedPeriods(){
   return av.filter(p=>p===selectedPeriod);
 }
 
-function evolutionPeriods(rows){
-  return orderPeriod.filter(p=>rows.some(r=>idText(r[6])===p)).reverse();
+function evolutionPeriods(rows, reverse=false){
+  const periods = orderPeriod.filter(p=>rows.some(r=>idText(r[6])===p));
+  return reverse ? periods.reverse() : periods;
 }
 function buildPeriodButtons(){
   const sel=document.getElementById('fPeriodo'); if(!sel)return;
@@ -1041,8 +1042,8 @@ function renderGradeAreaCharts(){let labelOpt=barLabelOptions(0); let gs=orderGr
 
 function renderHorizontalEvolution(){
   const perfLevels=['Elemental','Aceptable','Satisfactorio'];
-  const periodsPerf=evolutionPeriods(current.perf);
-  const periodsRead=evolutionPeriods(current.read);
+  const periodsPerf=evolutionPeriods(current.perf, true);
+  const periodsRead=evolutionPeriods(current.read, true);
   const hOpts={
     indexAxis:'y',
     responsive:true,
