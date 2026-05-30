@@ -1051,7 +1051,7 @@ function renderHorizontalEvolution(){
       x:{stacked:true,max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,59,113,.10)'}},
       y:{stacked:true,grid:{display:false},ticks:{color:'#53657d',font:{weight:'700'}}}
     },
-    datasets:{bar:{barPercentage:.62,categoryPercentage:.72,borderRadius:7,borderSkipped:false}},
+    datasets:{bar:{barThickness:32,maxBarThickness:34,barPercentage:.62,categoryPercentage:.72,borderRadius:7,borderSkipped:false}},
     plugins:{
       legend:{position:'bottom',labels:{boxWidth:14,padding:12,color:'#425872',font:{weight:'700'}}},
       tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${pctf(ctx.raw)}`}},
