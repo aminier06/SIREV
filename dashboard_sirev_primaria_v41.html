@@ -1074,7 +1074,7 @@ function exportResumen(){
         return ok;
       };
       console.info('[Mayo] Inyectados — COV:'+cov.length+' PerfBase:'+pb.length+' Read:'+rd.length);
-      buildPeriodButtons();setupFilters();apply();
+      selectedPeriod=preferredPeriod()||selectedPeriod||'__ALL__'; buildPeriodButtons();setupFilters();apply();
     }catch(e){console.warn('[Mayo] Error:',e.message);}
   }
 
