@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard SIREV Primaria v41</title>
+<title>Dashboard SIREV Primaria v41 corregido territorios</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -468,6 +468,65 @@ header{position:relative!important;top:auto!important;}
 .indicator-card.priority-index .status.high{background:#ddf3df;color:#186d25;border:1px solid #b8dfbd;}
 .indicator-card.priority-index .status{margin-top:8px;min-width:0;width:100%;max-width:180px;white-space:normal;text-align:center;}
 
+
+/* v42: filtros superiores más compactos; Competencia e Indicador en la misma fila */
+.dash-header.v21-header{
+  grid-template-columns:minmax(300px,.72fr) minmax(920px,1.65fr)!important;
+  gap:18px!important;
+  padding:13px 22px!important;
+}
+.v21-filter-panel{
+  padding:12px 14px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.90)!important;
+}
+.v21-filter-panel .top-filters{
+  display:grid!important;
+  grid-template-columns:minmax(175px,1fr) minmax(150px,.80fr) minmax(185px,1fr) minmax(215px,1.12fr) minmax(225px,1.15fr)!important;
+  gap:10px!important;
+  align-items:end!important;
+}
+.v21-filter-panel .tf label{
+  font-size:9.5px!important;
+  letter-spacing:.075em!important;
+  margin-bottom:4px!important;
+  color:#003B71!important;
+}
+.v21-filter-panel select{
+  min-height:39px!important;
+  padding:8px 11px!important;
+  border-radius:13px!important;
+  border-color:#b9cde3!important;
+  background:#fff!important;
+}
+.v21-filter-panel select:hover{
+  border-color:#7ea9d0!important;
+}
+@media(max-width:1420px){
+  .dash-header.v21-header{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  .v21-filter-panel .top-filters{
+    grid-template-columns:repeat(6,minmax(120px,1fr))!important;
+  }
+  .v21-filter-panel .tf:nth-child(1),
+  .v21-filter-panel .tf:nth-child(2),
+  .v21-filter-panel .tf:nth-child(3){
+    grid-column:span 2;
+  }
+  .v21-filter-panel .tf:nth-child(4),
+  .v21-filter-panel .tf:nth-child(5){
+    grid-column:span 3;
+  }
+}
+@media(max-width:760px){
+  .v21-filter-panel .top-filters{
+    grid-template-columns:1fr!important;
+  }
+  .v21-filter-panel .tf{grid-column:auto!important;}
+}
+
 </style>
 </head>
 <body>
@@ -497,6 +556,7 @@ header{position:relative!important;top:auto!important;}
 </main></div>
 <script>
 Chart.register(ChartDataLabels);
+console.info("SIREV: corrección territorial activa. Regionales máx. 18; distritos máx. 122.");
 const C={E:'#1E96F2',A:'#20279A',S:'#E8693B',N1:'#1E96F2',N2:'#20279A',N3:'#E8693B',N4:'#790987',N5:'#DF44A4'};
 let selectedPeriod=''; // Se asignará al periodo más reciente en init(). Use '__ALL__' para todos.
 const orderPeriod=['Septiembre','Noviembre','Marzo','Mayo'], orderArea=['Lengua Española','Matemática','Ciencias Sociales','Ciencias de la Naturaleza'], orderGrade=[1,2,3,4,5,6], gradeName={1:'Primero',2:'Segundo',3:'Tercero',4:'Cuarto',5:'Quinto',6:'Sexto'};
@@ -659,20 +719,19 @@ function districtCodeFromValue(v){ return codigoInicial(idText(v),4); }
 function covAgg(rows){
   let mat=0,ev=0,regs=new Set(),dists=new Set(),cent=new Set();
   for(const r of rows){
-    mat+=r[9]||0;
-    ev+=r[10]||0;
-    // Las tarjetas territoriales deben contar unidades únicas con registro,
-    // no sumar la misma regional/distrito una vez por cada periodo seleccionado.
+    mat += r[9] || 0;
+    ev  += r[10] || 0;
+    // Conteo territorial correcto: códigos únicos con registro, no suma por período.
     if((r[10]||0)>0){
-      const regCode=regionalCodeFromValue(r[0]);
-      const distCode=districtCodeFromValue(r[1]);
-      const centCode=centerCodeFromText(idText(r[2]));
+      const regCode  = regionalCodeFromValue(r[0]);
+      const distCode = districtCodeFromValue(r[1]);
+      const centCode = centerCodeFromText(idText(r[2]));
       if(regCode) regs.add(regCode);
       if(distCode) dists.add(distCode);
       if(centCode) cent.add(centCode);
     }
   }
-  return {mat,ev,regs:Math.min(regs.size,18),dists:Math.min(dists.size,122),cent:cent.size}
+  return {mat,ev,regs:Math.min(regs.size,18),dists:Math.min(dists.size,122),cent:cent.size};
 }
 function centerCodeSetFromCov(rows){
   const s=new Set();
@@ -946,7 +1005,15 @@ function addCoverageRows(out){
   for(const r of current.cov){
     const p=idText(r[6]);
     by[p]=by[p]||{mat:0,ev:0,regs:new Set(),dists:new Set(),cent:new Set()};
-    by[p].mat+=r[9]; by[p].ev+=r[10]; by[p].regs.add(r[0]); by[p].dists.add(r[1]); by[p].cent.add(r[2]);
+    by[p].mat+=r[9]||0; by[p].ev+=r[10]||0;
+    if((r[10]||0)>0){
+      const rc=regionalCodeFromValue(r[0]);
+      const dc=districtCodeFromValue(r[1]);
+      const cc=centerCodeFromText(idText(r[2]));
+      if(rc) by[p].regs.add(rc);
+      if(dc) by[p].dists.add(dc);
+      if(cc) by[p].cent.add(cc);
+    }
   }
   for(const p of orderPeriod.filter(p=>by[p])){
     const x=by[p];
