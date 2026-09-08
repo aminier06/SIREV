@@ -685,8 +685,8 @@ const datosPorAnio = {
             mayo: "monitoreo_sistematizacion_admin.html"
         },
         formularios: {
-            primerCiclo: "formulario_primer_ciclo.html",
-            segundoCiclo: "formulario_segundo_ciclo.html"
+            primerCiclo: "https://formularioprimerciclo.sirevprimaria.net/",
+            segundoCiclo: "https://formulariosegundociclo.sirevprimaria.net/"
         }
     },
     "2026-2027": {
@@ -695,8 +695,8 @@ const datosPorAnio = {
         pruebas: {},
         sistematizacion: {},
         formularios: {
-            primerCiclo: "formulario_primer_ciclo.html",
-            segundoCiclo: "formulario_segundo_ciclo.html"
+            primerCiclo: "https://formularioprimerciclo.sirevprimaria.net/",
+            segundoCiclo: "https://formulariosegundociclo.sirevprimaria.net/"
         }
     },
     "2024-2025": {
@@ -705,8 +705,8 @@ const datosPorAnio = {
         pruebas: {},
         sistematizacion: {},
         formularios: {
-            primerCiclo: "formulario_primer_ciclo.html",
-            segundoCiclo: "formulario_segundo_ciclo.html"
+            primerCiclo: "https://formularioprimerciclo.sirevprimaria.net/",
+            segundoCiclo: "https://formulariosegundociclo.sirevprimaria.net/"
         }
     }
 };
@@ -720,8 +720,8 @@ const ADMIN_PASS = "Sirev2026*";
 // Reemplaza esta URL por la de tu función de Supabase una vez la despliegues.
 const SUPABASE_FUNCTION_URL = "https://sikqxdzsjjqyqhcfihjp.supabase.co/functions/v1/publicar-config-sirev";
 const FORMULARIOS_FIJOS = {
-    primerCiclo: "formulario_primer_ciclo.html",
-    segundoCiclo: "formulario_segundo_ciclo.html"
+    primerCiclo: "https://formularioprimerciclo.sirevprimaria.net/",
+    segundoCiclo: "https://formulariosegundociclo.sirevprimaria.net/"
 };
 const MARCO_EVALUACION_URL = "https://drive.google.com/file/d/1c_vFWAbGmbTYObQ4g4GnkXcWxz2h2BGW/view?usp=drive_link";
 const adminDefaults = {
@@ -961,8 +961,7 @@ function aplicarConfigAdmin() {
         datosPorAnio[anio].sistematizacion = {...cfg.sistematizacion};
         datosPorAnio[anio].formularios = {...FORMULARIOS_FIJOS};
     });
-    const cfgActual = configAnio(anioSeleccionado);
-    fechaCierreFormularios = new Date(cfgActual.deadlineIso || "2999-12-31T23:59:00-04:00");
+    fechaCierreFormularios = obtenerDeadlineGlobal();
     mensajeCierreFormularios = "El registro de resultados cerró el " + formatearFechaCierre(fechaCierreFormularios) + ".";
 }
 
@@ -1260,7 +1259,20 @@ function formatearFechaCierre(date) {
 
 // Fecha y hora de cierre del registro de resultados.
 // Se usa la zona horaria de República Dominicana (UTC-04:00).
-let fechaCierreFormularios = new Date(adminDefaults.years[anioSeleccionado]?.deadlineIso || "2999-12-31T23:59:00-04:00");
+function obtenerDeadlineGlobal() {
+    const ahora = new Date();
+    const todos = Object.values(adminConfig.years || {})
+        .map(y => y.deadlineIso ? new Date(y.deadlineIso) : null)
+        .filter(d => d && !isNaN(d));
+    if (!todos.length) return new Date("2999-12-31T23:59:00-04:00");
+    const futuros = todos.filter(d => d > ahora);
+    // Si hay deadlines futuros, usa el más próximo; si no, usa el más reciente del pasado.
+    return futuros.length
+        ? futuros.reduce((a, b) => a < b ? a : b)
+        : todos.reduce((a, b) => a > b ? a : b);
+}
+
+let fechaCierreFormularios = obtenerDeadlineGlobal();
 let mensajeCierreFormularios = "El registro de resultados cerró el " + formatearFechaCierre(fechaCierreFormularios) + ".";
 
 function formulariosEstanDisponibles() {
@@ -1387,9 +1399,9 @@ function abrirFormulario(ciclo) {
         return;
     }
 
-    const url = datosPorAnio[anioSeleccionado].formularios?.[ciclo];
+    const url = FORMULARIOS_FIJOS[ciclo];
     if (url) window.open(agregarParametrosFormulario(url), "_blank");
-    else alert("Formulario no disponible para este año escolar.");
+    else alert("Formulario no disponible.");
     cerrarMenus();
 }
 
