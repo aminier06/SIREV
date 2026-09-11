@@ -55,6 +55,12 @@
 #brechas .status.low{background:#fde2e2;color:#8a1111;border:1px solid #f4b5b5}
 #brechas .status.mid{background:#fff2cc;color:#7a5200;border:1px solid #f5d47c}
 #brechas .status.high{background:#ddf3df;color:#186d25;border:1px solid #b8dfbd}
+#brechas .status.none{background:#eef1f5;color:#5b6675;border:1px dashed #c4ccd6}
+/* v42: la lista de intervención es un turno de atención, no una categoría:
+   se muestra como distintivo secundario debajo del estado, nunca en su lugar. */
+#brechas .status.intervencion{display:block;margin-top:5px;background:#1f3864;color:#fff;border:1px solid #16294a;font-weight:700;letter-spacing:.2px}
+#brechas .rank-note{margin:0 12px 12px;padding:9px 11px;border-left:3px solid #0064ad;background:#f4f8fc;color:#33475e;font-size:11.5px;line-height:1.45;border-radius:0 5px 5px 0}
+#brechas .rank-note b{color:#123a5e}
 
 
 
@@ -463,7 +469,7 @@ header{position:relative!important;top:auto!important;}
 }
 
 
-/* v41: índice de priorización solo en ámbitos filtrados y a la derecha del tacómetro */
+/* v41: índice de brecha solo en ámbitos filtrados y a la derecha del tacómetro */
 #generalIndicators{
   grid-template-columns:repeat(auto-fit,minmax(165px,1fr))!important;
 }
@@ -1261,14 +1267,17 @@ button.pdf-btn:disabled{opacity:.65;cursor:wait}
   <div class="section">
     <div class="section-header-row"><h2>Ranking por regional</h2><button class="export-xls-btn" onclick="exportBrechasXls('tReg','regional')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Exportar Excel</button></div>
     <div class="body tablewrap"><table id="tReg"></table></div>
+    <div class="rank-note" id="tRegNota"></div>
   </div>
   <div class="section">
     <div class="section-header-row"><h2>Ranking por distrito</h2><button class="export-xls-btn" onclick="exportBrechasXls('tDist','distrito')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Exportar Excel</button></div>
     <div class="body tablewrap"><table id="tDist"></table></div>
+    <div class="rank-note" id="tDistNota"></div>
   </div>
   <div class="section">
     <div class="section-header-row"><h2>Ranking por centro educativo</h2><button class="export-xls-btn" onclick="exportBrechasXls('tCentro','centro_educativo')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Exportar Excel</button></div>
     <div class="body tablewrap"><table id="tCentro"></table></div>
+    <div class="rank-note" id="tCentroNota"></div>
   </div>
 </section>
 <section id="matriz" class="pane">
@@ -1739,8 +1748,9 @@ function calcPriorityIndexForRows(rows){
   const total=(perf.Elemental||0)+(perf.Aceptable||0)+(perf.Satisfactorio||0);
   if(!total) return null;
   const pE=pct(perf.Elemental,total);
+  const pA=pct(perf.Aceptable,total);
   const pS=pct(perf.Satisfactorio,total);
-  return breachIndex(pE,pS);
+  return breachIndex(pE,pS,pA,total);
 }
 
 function renderAll(){renderCoverage();renderGeneralIndicators();renderBars();renderTables();renderMatrix();}
@@ -1805,10 +1815,10 @@ function renderGeneralIndicators(){
   if(scoped){
     const idx=calcPriorityIndexForRows(current.perf);
     if(idx==null){
-      priorityHtml=`<div class="indicator-card priority-index"><small>Índice de priorización</small><div class="val">—</div><div class="det">Sin datos suficientes para calcular.</div></div>`;
+      priorityHtml=`<div class="indicator-card priority-index"><small>Índice de brecha</small><div class="val">—</div><div class="det">Sin datos suficientes para calcular.</div></div>`;
     }else{
       const st=rankStatus(idx,cov.ev);
-      priorityHtml=`<div class="indicator-card priority-index ${st[0]}"><small>Índice de priorización</small><div class="val ${st[0]}">${idx.toFixed(2)}</div><div class="det">Estado del ámbito seleccionado</div><span class="status ${st[0]}">${st[1]}</span></div>`;
+      priorityHtml=`<div class="indicator-card priority-index ${st[0]}"><small>Índice de brecha</small><div class="val ${st[0]}">${idxTxt(idx)}</div><div class="det">${indiceEtiquetaFormula()} · más alto es mayor brecha</div><span class="status ${st[0]}">${st[1]}</span></div>`;
     }
   }
 
@@ -1946,14 +1956,149 @@ function renderHorizontalEvolution(){
 
 function renderTables(){renderLectTable(); renderRanks();}
 function renderLectTable(){let groups={}; for(const r of current.read){let g=gradeOf(r),p=idText(r[6]); if(!g||!p)continue; let k=g+'|'+p; groups[k]=groups[k]||[]; groups[k].push(r)} let entries=Object.entries(groups).sort((a,b)=>{let [ga,pa]=a[0].split('|'),[gb,pb]=b[0].split('|'); return (+ga-+gb)||(orderPeriod.indexOf(pa)-orderPeriod.indexOf(pb));}); let lastGrade=null; let rows=entries.map(([k,arr])=>{let [g,p]=k.split('|'),m=aggLevels(arr,readOrder,9,10),tot=Object.values(m).reduce((a,b)=>a+b,0);let sep=(g!==lastGrade); lastGrade=g; return `<tr class="${sep?'grade-separator':''}"><td>${gradeName[+g]||'Sin grado'}</td><td>${p}</td>${readOrder.map(l=>`<td class="right">${pctf(pct(m[l],tot))}</td>`).join('')}<td class="right">${fmt(tot)}</td></tr>`}).join(''); if(!rows)rows='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px">No hay datos de lectura para los filtros seleccionados.</td></tr>'; tLect.innerHTML=`<thead><tr><th>Grado</th><th>Periodo</th>${readOrder.map(l=>`<th class="right">${l}</th>`).join('')}<th class="right">Total</th></tr></thead><tbody>${rows}</tbody>`}
-function breachIndex(pE,pS){return (pE*0.6)+((100-pS)*0.4);}
-function rankStatus(indice,evaluados){let base=''; if(evaluados>0&&evaluados<10)base=' · baja base'; else if(evaluados>=10&&evaluados<30)base=' · cautela'; if(indice>=50)return ['low','Prioridad alta'+base]; if(indice>=40)return ['mid','Atención moderada'+base]; return ['high','Avance favorable'+base];}
+/* ══ v42 · ÍNDICE DE BRECHA CALIBRADO ══════════════════════════════════
+   Calibrado sobre los cuatro cortes del año escolar (Septiembre, Noviembre,
+   Marzo, Mayo; ~4,850–5,010 centros por corte).
+
+   FÓRMULA        índice = %Elemental + w · %Aceptable        (w = 0.50)
+   Escala de brecha: MÁS ALTO = PEOR. Anclajes: todo Satisfactorio → 0;
+   todo Aceptable → 50; todo Elemental → 100.
+
+   CAMBIO RESPECTO A v41. La versión anterior calculaba
+       0.6·pE + 0.4·(100 − pS)
+   que es algebraicamente idéntica a  pE + 0.40·pA  mientras los tres
+   porcentajes sumen 100. Se migra el peso de 0.40 a 0.50 para que la
+   distancia Elemental→Aceptable valga lo mismo que Aceptable→Satisfactorio.
+   La forma antigua además devolvía 40 cuando no había datos (pE=pS=0), lo
+   que etiquetaba como "Atención moderada" a centros sin un solo estudiante
+   evaluado; la forma actual devuelve null y se rotula "Sin datos".
+
+   CLASIFICACIÓN HÍBRIDA. Dos lecturas que responden preguntas distintas:
+     · BANDA FIJA (umbrales de criterio 25/50) — "¿cómo está este centro?"
+       Absoluta y comparable entre cortes y entre años. No cambia de
+       significado porque cambie el mes.
+     · LISTA DE INTERVENCIÓN (peor 15% del propio corte) — "¿a quién
+       atiendo primero?" Es un orden de turno con cupo, no una categoría.
+       Necesaria porque la mediana del sistema se desplaza ~28 puntos entre
+       Septiembre y Mayo: con umbral fijo, Septiembre deja dos tercios del
+       país en Prioridad alta (un censo, no una prioridad) y Mayo apenas 6%.
+   ══════════════════════════════════════════════════════════════════════ */
+const SIREV_IDX_DEFAULTS = Object.freeze({
+  w: 0.50,            // peso del nivel Aceptable
+  bandaBaja: 25,      // < bandaBaja  → Avance favorable
+  bandaAlta: 50,      // >= bandaAlta → Prioridad alta
+  pctLista: 0.15,     // proporción del corte que entra a la lista de intervención
+  baseMin: 10,        // evaluados mínimos para ser elegible a la lista
+  minUnidades: 20,    // unidades mínimas en la vista para que la lista tenga sentido
+  cautelaBaja: 10,    // < cautelaBaja  → "baja base"
+  cautelaAlta: 30     // < cautelaAlta  → "cautela"
+});
+let SIREV_IDX = Object.assign({}, SIREV_IDX_DEFAULTS);
+(function cargarConfigIndice(){
+  try{
+    const raw = JSON.parse(localStorage.getItem('sirevIndiceConfig') || '{}');
+    for(const k of Object.keys(SIREV_IDX_DEFAULTS)){
+      const v = Number(raw[k]);
+      if(Number.isFinite(v)) SIREV_IDX[k] = v;
+    }
+    if(!(SIREV_IDX.bandaBaja < SIREV_IDX.bandaAlta)) SIREV_IDX.bandaBaja = SIREV_IDX_DEFAULTS.bandaBaja;
+    if(!(SIREV_IDX.pctLista > 0 && SIREV_IDX.pctLista < 1)) SIREV_IDX.pctLista = SIREV_IDX_DEFAULTS.pctLista;
+  }catch(e){ console.warn('[SIREV] Config de índice inválida; se usan los valores calibrados por defecto.', e.message); }
+})();
+window.SIREV_IDX = SIREV_IDX;
+// Permite al panel de administración cambiar los parámetros sin tocar el código.
+window.sirevSetIndiceConfig = function(cfg){
+  try{
+    const actual = JSON.parse(localStorage.getItem('sirevIndiceConfig') || '{}');
+    localStorage.setItem('sirevIndiceConfig', JSON.stringify(Object.assign(actual, cfg || {})));
+    return true;
+  }catch(e){ console.warn('[SIREV] No se pudo guardar la config de índice:', e.message); return false; }
+};
+function indiceEtiquetaFormula(){
+  const w = SIREV_IDX.w;
+  const pct = (w*100).toFixed(w*100 % 1 ? 1 : 0);
+  return `% Elemental + ${pct}% del % Aceptable`;
+}
+
+/* Devuelve el índice de brecha, o null si el ámbito no tiene datos.
+   pA y total son opcionales: cuando se omiten, pA se deriva de 100−pE−pS.
+   Pasar `total` es lo que permite distinguir "sin datos" de "0 de brecha". */
+function breachIndex(pE,pS,pA,total){
+  if(total!=null && !(Number(total)>0)) return null;
+  const e = Number(pE)||0, s = Number(pS)||0;
+  const a = (pA==null || !Number.isFinite(Number(pA))) ? Math.max(0, 100-e-s) : (Number(pA)||0);
+  if(total==null && !(e+a+s>0)) return null;
+  // Se redondea a 2 decimales ANTES de clasificar, que es la precisión con la
+  // que el índice se muestra en pantalla y se exporta. Sin esto, un centro que
+  // la tabla imprime como "50.00" podía quedar clasificado en la banda inferior
+  // por diferencias en el tercer decimal: en Septiembre eso afecta a 87 centros
+  // situados justo sobre la frontera. Lo mostrado y lo clasificado deben ser
+  // siempre el mismo número.
+  return round2(e + SIREV_IDX.w * a);
+}
+/* Redondeo a 2 decimales con la mitad hacia arriba, igual que ROUND() de Excel.
+   toFixed() de JavaScript decide según la representación binaria y deja 49.995
+   en 49.99, mientras la hoja de cálculo da 50.00: eso hacía que el dashboard y
+   el libro de calibración clasificaran distinto a 26 centros justo en la
+   frontera. El epsilon corrige el error de representación del caso exacto. */
+function round2(x){
+  const v = Number(x)*100;
+  const piso = Math.floor(v);
+  return ((v - piso) > 0.5 - 1e-9 ? piso + 1 : piso) / 100;
+}
+function idxTxt(v,d){return (v==null||!Number.isFinite(Number(v)))?'—':Number(v).toFixed(d==null?2:d);}
+function cmpIdx(a,b){return (b==null?-Infinity:b)-(a==null?-Infinity:a);}
+function rankStatus(indice,evaluados){
+  if(indice==null || !Number.isFinite(Number(indice))) return ['none','Sin datos'];
+  const ev = Number(evaluados)||0;
+  let base='';
+  if(ev>0 && ev<SIREV_IDX.cautelaBaja) base=' · baja base';
+  else if(ev>=SIREV_IDX.cautelaBaja && ev<SIREV_IDX.cautelaAlta) base=' · cautela';
+  if(indice>=SIREV_IDX.bandaAlta) return ['low','Prioridad alta'+base];
+  if(indice>=SIREV_IDX.bandaBaja) return ['mid','Atención moderada'+base];
+  return ['high','Avance favorable'+base];
+}
+/* Umbral de la lista de intervención: el peor `pctLista` de las unidades
+   visibles con base suficiente. Se calcula sobre el mismo conjunto que se
+   está mostrando, de modo que el corte siempre es interpretable: "el peor
+   15% de lo que estoy viendo". Devuelve null si hay muy pocas unidades. */
+function interventionCut(rows){
+  if(!Array.isArray(rows)) return null;
+  const v = rows.filter(r => r && r.idxB!=null && Number.isFinite(r.idxB) && (Number(r.ev)||0) >= SIREV_IDX.baseMin)
+                .map(r => r.idxB)
+                .sort((a,b) => a-b);
+  if(v.length < SIREV_IDX.minUnidades) return null;
+  // k = cuántas unidades entran a la lista; el umbral es la k-ésima peor.
+  // Expresarlo así (y no como ceil(n·(1−p))−1) evita un desfase de una unidad
+  // cuando n·p cae en un entero exacto.
+  const k = Math.max(1, Math.ceil(v.length * SIREV_IDX.pctLista));
+  return v[Math.max(0, v.length - k)];
+}
+function marcarIntervencion(rows){
+  const cut = interventionCut(rows);
+  for(const r of rows){
+    r.cut = cut;
+    r.enLista = cut!=null && r.idxB!=null && Number.isFinite(r.idxB)
+                && (Number(r.ev)||0) >= SIREV_IDX.baseMin && r.idxB >= cut;
+  }
+  return cut;
+}
 const rankSortState={tReg:{col:2,dir:'desc'},tDist:{col:2,dir:'desc'},tCentro:{col:2,dir:'desc'}};
 function setRankSort(tableId,col){const s=rankSortState[tableId]||(rankSortState[tableId]={col:2,dir:'desc'}); if(s.col===col)s.dir=s.dir==='asc'?'desc':'asc'; else{s.col=col; s.dir=(col===0||col===6)?'asc':'desc'} renderRanks();}
-function rankSortValue(r,col){if(col===0)return r.k||''; if(col===1)return r.ev||0; if(col===2)return r.idxB||0; if(col===3)return r.pe||0; if(col===4)return r.pa||0; if(col===5)return r.ps||0; if(col===6)return (r.st&&r.st[1])||''; return 0;}
-function sortRankRows(arr,tableId){const s=rankSortState[tableId]||{col:2,dir:'desc'}; return [...arr].sort((a,b)=>{let va=rankSortValue(a,s.col),vb=rankSortValue(b,s.col); let c=(typeof va==='string'||typeof vb==='string')?String(va).localeCompare(String(vb),'es',{numeric:true}):(va-vb); if(c===0)c=(b.idxB-a.idxB)||(b.pe-a.pe)||(a.ps-b.ps); return s.dir==='asc'?c:-c;});}
+function rankSortValue(r,col){if(col===0)return r.k||''; if(col===1)return r.ev||0; if(col===2)return (r.idxB==null?-1:r.idxB); if(col===3)return r.pe||0; if(col===4)return r.pa||0; if(col===5)return r.ps||0; if(col===6)return (r.st&&r.st[1])||''; return 0;}
+function sortRankRows(arr,tableId){const s=rankSortState[tableId]||{col:2,dir:'desc'}; return [...arr].sort((a,b)=>{let va=rankSortValue(a,s.col),vb=rankSortValue(b,s.col); let c=(typeof va==='string'||typeof vb==='string')?String(va).localeCompare(String(vb),'es',{numeric:true}):(va-vb); if(c===0)c=cmpIdx(a.idxB,b.idxB)||(b.pe-a.pe)||(a.ps-b.ps); return s.dir==='asc'?c:-c;});}
 function rankHeader(tableId,col,text){const s=rankSortState[tableId]||{col:2,dir:'desc'}; const mark=s.col===col?(s.dir==='asc'?'▲':'▼'):'↕'; const cls=s.col===col?'':'unsorted'; return `<th class="sortable" onclick="setRankSort('${tableId}',${col})" title="Ordenar por ${text}">${text}<span class="sortmark ${cls}">${mark}</span></th>`;}
-function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of current.perf){let k=idText(r[idx]); if(!k)continue; perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)} for(const r of current.cov){let k=idText(r[idx]); if(!k)continue; covMap[k]=(covMap[k]||0)+r[10]} let arr=Object.entries(perfMap).map(([k,rows])=>{let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13),tot=m.Elemental+m.Aceptable+m.Satisfactorio,pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);return {k,ev,pe,pa,ps,idxB,st}}); arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${r.idxB.toFixed(2)}</td><td class="num breach-elemental">${pctf(r.pe)}</td><td class="num breach-aceptable">${pctf(r.pa)}</td><td class="num breach-satisfactorio">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span></td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`}
+function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of current.perf){let k=idText(r[idx]); if(!k)continue; perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)} for(const r of current.cov){let k=idText(r[idx]); if(!k)continue; covMap[k]=(covMap[k]||0)+r[10]} let arr=Object.entries(perfMap).map(([k,rows])=>{let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13),tot=m.Elemental+m.Aceptable+m.Satisfactorio,pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps,pa,tot),ev=covMap[k]||0,st=rankStatus(idxB,ev);return {k,ev,pe,pa,ps,idxB,st}});
+  // La lista de intervención es un orden de turno entre centros, no una categoría:
+  // solo tiene sentido en la tabla de centros educativos, que es la unidad que se interviene.
+  const cutLista = (idx===2) ? marcarIntervencion(arr) : null;
+  arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${idxTxt(r.idxB)}</td><td class="num breach-elemental">${pctf(r.pe)}</td><td class="num breach-aceptable">${pctf(r.pa)}</td><td class="num breach-satisfactorio">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span>${r.enLista?`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% con mayor brecha de los centros visibles con base suficiente">Lista de intervención</span>`:''}</td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`;
+  const notaEl=document.getElementById(id+'Nota');
+  if(notaEl){
+    notaEl.innerHTML = (idx===2 && cutLista!=null)
+      ? `<b>Dos lecturas.</b> El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. La <b>lista de intervención</b> es relativa a esta vista: reúne al ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha (índice ≥ ${cutLista.toFixed(2)}) entre los que tienen ${SIREV_IDX.baseMin} o más evaluados. Un centro puede mejorar y seguir en la lista si los demás mejoraron más.`
+      : `El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. Valores más altos indican mayor brecha.`;
+  }}
 function renderRanks(){renderRankTable('tReg',0,'Regional');renderRankTable('tDist',1,'Distrito');renderRankTable('tCentro',2,'Centro educativo')}
 const matrixSortState={col:0,dir:'asc'};
 function matrixAgg(mode){const rows=mode==='perf'?current.perf:current.read, levels=mode==='perf'?['Elemental','Aceptable','Satisfactorio']:readOrder, idxL=mode==='perf'?12:9, idxV=mode==='perf'?13:10; let m={}; for(const r of rows){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; if(!path[0])continue; for(let depth=1;depth<=3;depth++){let k=path.slice(0,depth).join('|'); if(!m[k])m[k]={name:path[depth-1],depth,vals:Object.fromEntries(levels.map(l=>[l,0])),children:new Set()}; m[k].vals[idText(r[idxL])] += r[idxV]; if(depth>1)m[path.slice(0,depth-1).join('|')].children.add(k)}} let ev={}; for(const r of current.cov){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; if(!path[0])continue; for(let d=1;d<=3;d++){let k=path.slice(0,d).join('|'); ev[k]=(ev[k]||0)+r[10]}} return {m,ev,levels};}
@@ -2094,14 +2239,16 @@ function breachRows(idx,label){
   let perfMap={}, covMap={};
   for(const r of current.perf){let k=idText(r[idx]); if(!k)continue; perfMap[k]=perfMap[k]||[]; perfMap[k].push(r)}
   for(const r of current.cov){let k=idText(r[idx]); if(!k)continue; covMap[k]=(covMap[k]||0)+r[10]}
-  return Object.entries(perfMap).map(([k,rows])=>{
+  const out = Object.entries(perfMap).map(([k,rows])=>{
     let m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13),tot=m.Elemental+m.Aceptable+m.Satisfactorio;
-    let pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps),ev=covMap[k]||0,st=rankStatus(idxB,ev);
+    let pe=pct(m.Elemental,tot),pa=pct(m.Aceptable,tot),ps=pct(m.Satisfactorio,tot),idxB=breachIndex(pe,ps,pa,tot),ev=covMap[k]||0,st=rankStatus(idxB,ev);
     return {label,k,ev,pe,pa,ps,idxB,estado:st[1]};
-  }).sort((a,b)=>b.idxB-a.idxB);
+  }).sort((a,b)=>(b.idxB??-Infinity)-(a.idxB??-Infinity));
+  if(idx===2) marcarIntervencion(out);
+  return out;
 }
 function exportResumen(){
-  const rows=[['Seccion','Agrupacion','Unidad','Periodo','Nivel','Matricula','Evaluados','Valor','Porcentaje','Indice_priorizacion','Estado','Filtros_aplicados']];
+  const rows=[['Seccion','Agrupacion','Unidad','Periodo','Nivel','Matricula','Evaluados','Valor','Porcentaje','Indice_brecha','Estado','En_lista_intervencion','Filtros_aplicados']];
   const f=current.f||filters();
   const ftxt=`Periodos: ${getSelectedPeriods().join(' | ')}; Regional: ${f.reg||'Todas'}; Distrito: ${f.dist||'Todos'}; Centro: ${f.centro||f.centroText||'Todos'}; Sector: ${f.sec||'Todos'}; Tipo: ${f.tipo||'Todos'}; Tanda: ${f.tanda||'Todas'}; Ciclo: ${f.ciclo?`Ciclo ${f.ciclo}`:'Todos'}; Grado: ${f.g?gradeName[f.g]:'Todos'}; Área: ${f.area||'Todas'}; Competencia: ${f.comp||'Todas'}; Indicador: ${f.ind||'Todos'}`;
   addCoverageRows(rows);
@@ -2110,8 +2257,8 @@ function exportResumen(){
   addDistributionRows(rows,'Desempeño','Área',current.perf,r=>idText(r[9]),['Elemental','Aceptable','Satisfactorio'],12,13);
   addDistributionRows(rows,'Lectura','Periodo',current.read,r=>idText(r[6]),readOrder,9,10);
   addDistributionRows(rows,'Lectura','Grado',current.read,r=>gradeName[gradeOf(r)]||'Sin grado',readOrder,9,10);
-  for(const table of [breachRows(0,'Regional'),breachRows(1,'Distrito'),breachRows(2,'Centro educativo')]){for(const r of table){rows.push(['Brechas',r.label,r.k,'','','',r.ev,'','',r.idxB.toFixed(2),r.estado,ftxt]);}}
-  for(let i=1;i<rows.length;i++) if(!rows[i][11]) rows[i][11]=ftxt;
+  for(const table of [breachRows(0,'Regional'),breachRows(1,'Distrito'),breachRows(2,'Centro educativo')]){for(const r of table){rows.push(['Brechas',r.label,r.k,'','','',r.ev,'','',idxTxt(r.idxB),r.estado,(r.enLista?'Sí':(r.cut!=null?'No':'')),ftxt]);}}
+  for(let i=1;i<rows.length;i++) if(!rows[i][12]) rows[i][12]=ftxt;
   downloadCSV('sirev_datos_visibles_filtrados.csv',rows);
 }
 /* ── CORRECCIÓN MAYO ───────────────────────────────────────────────────
@@ -2151,8 +2298,8 @@ async function exportBrechasXls(tableId, scope){
         const name = nameSpan ? nameSpan.innerText.trim() : td.innerText.replace(/^\d+\.\s*/,'').trim();
         return [rankNum, name];
       }
-      const span = td.querySelector('.status');
-      if(span) return [span.innerText.trim()];
+      const spans = td.querySelectorAll('.status');
+      if(spans.length) return [[...spans].map(x=>x.innerText.trim()).join(' · ')];
       return [td.innerText.trim()];
     })
   );
@@ -2236,7 +2383,7 @@ async function exportMatrizXls(){
 
 /* ── INFORME DESCRIPTIVO EN PDF ───────────────────────────────────────────
    Reutiliza los mismos cálculos del dashboard (cobertura, niveles de
-   desempeño y lectura, índice de priorización) para un ámbito determinado,
+   desempeño y lectura, índice de brecha) para un ámbito determinado,
    y los redacta como texto en lugar de mostrarlos solo en tablas.
 
    El periodo NO se trata como un filtro: el informe siempre considera
@@ -2261,7 +2408,7 @@ function statsFromRows(perf, read, cov){
   const readA = aggLevels(read,readOrder,9,10);
   const readTotal = Object.values(readA).reduce((a,b)=>a+b,0);
   const fluido = readA['Lector fluido']||0, noFluido = readA['Lector no fluido']||0;
-  const idxB = perfTotal ? breachIndex(pe,ps) : null;
+  const idxB = breachIndex(pe,ps,pa,perfTotal);
   const st = idxB!=null ? rankStatus(idxB, covA.ev) : null;
   return {
     cov: covA,
@@ -2328,7 +2475,7 @@ function nivelesComparacionGradoArea(amb, fExport, grado, area, periodo){
 }
 
 // A partir de los grado-área ya calculados (gradosAreaPropios), identifica las
-// combinaciones con mayor índice de priorización (más atención) y las de mejor
+// combinaciones con mayor índice de brecha (más atención) y las de mejor
 // desempeño (fortalezas), usando únicamente el periodo más reciente disponible.
 // El número de "evaluados" de un área específica NO se obtiene sumando los
 // niveles de desempeño a nivel de área (Elemental+Aceptable+Satisfactorio),
@@ -2384,7 +2531,7 @@ function fortalezasYPrioridades(gradosAreaPropios, periodoReciente){
       if(x) combinaciones.push({grado:g.grado, area:a.area, ...x});
     });
   });
-  const prioridades = [...combinaciones].sort((a,b)=>b.idxB-a.idxB).slice(0,3);
+  const prioridades = [...combinaciones].sort((a,b)=>cmpIdx(a.idxB,b.idxB)).slice(0,3);
   const fortalezas = [...combinaciones].sort((a,b)=>b.ps-a.ps).slice(0,2);
   return {prioridades, fortalezas};
 }
@@ -2415,11 +2562,13 @@ function breachRowsFromData(perf, cov, idx, label){
   let perfMap={}, covMap={};
   for(const r of perf){ const k=idText(r[idx]); if(!k)continue; perfMap[k]=perfMap[k]||[]; perfMap[k].push(r); }
   for(const r of cov){ const k=idText(r[idx]); if(!k)continue; covMap[k]=(covMap[k]||0)+(r[10]||0); }
-  return Object.entries(perfMap).map(([k,rows])=>{
+  const out = Object.entries(perfMap).map(([k,rows])=>{
     const m=aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13), tot=(m.Elemental||0)+(m.Aceptable||0)+(m.Satisfactorio||0);
-    const pe=pct(m.Elemental,tot), pa=pct(m.Aceptable,tot), ps=pct(m.Satisfactorio,tot), idxB=breachIndex(pe,ps), ev=covMap[k]||0, st=rankStatus(idxB,ev);
+    const pe=pct(m.Elemental,tot), pa=pct(m.Aceptable,tot), ps=pct(m.Satisfactorio,tot), idxB=breachIndex(pe,ps,pa,tot), ev=covMap[k]||0, st=rankStatus(idxB,ev);
     return {label,k,ev,pe,pa,ps,idxB,estado:st[1]};
-  }).sort((a,b)=>b.idxB-a.idxB);
+  }).sort((a,b)=>(b.idxB??-Infinity)-(a.idxB??-Infinity));
+  if(idx===2) marcarIntervencion(out);
+  return out;
 }
 
 
@@ -2450,7 +2599,8 @@ function valoresDesempenoDesdeAgg(m){
   const total = (m.Elemental||0) + (m.Aceptable||0) + (m.Satisfactorio||0);
   if(!total) return ['—','—','—','—'];
   const pe = pct(m.Elemental,total), pa = pct(m.Aceptable,total), ps = pct(m.Satisfactorio,total);
-  return [pctf(ps), pctf(pa), pctf(pe), breachIndex(pe,ps).toFixed(2)];
+  const ib = breachIndex(pe,ps,pa,total);
+  return [pctf(ps), pctf(pa), pctf(pe), ib==null?'—':ib.toFixed(2)];
 }
 function agregarNivel(m, level, value){
   if(level in m) m[level] += (+value || 0);
@@ -2669,9 +2819,9 @@ function desempenoPorArea(f, perf){
     const rows = perf.filter(r=>idText(r[9])===a);
     const m = aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13);
     const tot = (m.Elemental||0)+(m.Aceptable||0)+(m.Satisfactorio||0);
-    const pe = pct(m.Elemental,tot), ps = pct(m.Satisfactorio,tot);
-    return {area:a, pe, pa: pct(m.Aceptable,tot), ps, idxB: tot?breachIndex(pe,ps):0};
-  }).sort((x,y)=>y.idxB-x.idxB);
+    const pe = pct(m.Elemental,tot), pa = pct(m.Aceptable,tot), ps = pct(m.Satisfactorio,tot);
+    return {area:a, pe, pa, ps, idxB: breachIndex(pe,ps,pa,tot)};
+  }).sort((x,y)=>cmpIdx(x.idxB,y.idxB));
 }
 
 function desempenoPorGrado(f, perf){
@@ -2720,6 +2870,7 @@ function lecturaPorGrado(f, read){
 
 function fraseEstado(st){
   if(!st) return '';
+  if(st[0]==='none') return 'No hay estudiantes evaluados en este ámbito, por lo que no es posible calcular el índice.';
   if(st[0]==='low') return 'Esto ubica al ámbito en un nivel de prioridad alta: conviene revisar pronto las estrategias de apoyo.';
   if(st[0]==='mid') return 'Esto representa una atención moderada: hay margen de mejora, aunque la situación no es crítica.';
   return 'Esto refleja un avance favorable en comparación con el resto.';
@@ -2748,7 +2899,7 @@ function textoDesempeno(st, periodo){
   if(!total) return 'No hay suficientes datos de desempeño para este ámbito con los filtros seleccionados.';
   const cuando = periodo ? `En ${periodo}, el periodo más reciente con datos,` : 'En el periodo disponible,';
   let txt = `${cuando} ${pctf(ps)} de los estudiantes evaluados se ubicó en el nivel Satisfactorio, ${pctf(pa)} en Aceptable y ${pctf(pe)} en Elemental.`;
-  if(st.idxB!=null) txt += ` El índice de priorización calculado para ese periodo es de ${st.idxB.toFixed(2)} puntos. ${fraseEstado(st.st)}`;
+  if(st.idxB!=null) txt += ` El índice de brecha calculado para ese periodo es de ${idxTxt(st.idxB)} puntos. ${fraseEstado(st.st)}`;
   return txt;
 }
 
@@ -2832,8 +2983,8 @@ async function generarInformePDF(){
           const m = aggLevels(rows,['Elemental','Aceptable','Satisfactorio'],12,13);
           const tot = (m.Elemental||0)+(m.Aceptable||0)+(m.Satisfactorio||0);
           if(!tot) return null;
-          const pe=pct(m.Elemental,tot), ps=pct(m.Satisfactorio,tot);
-          return {periodo:p, ps, pa:pct(m.Aceptable,tot), pe, idxB:breachIndex(pe,ps)};
+          const pe=pct(m.Elemental,tot), pa=pct(m.Aceptable,tot), ps=pct(m.Satisfactorio,tot);
+          return {periodo:p, ps, pa, pe, idxB:breachIndex(pe,ps,pa,tot)};
         });
         return {area:a, porPeriodo};
       }).filter(a=>a.porPeriodo.some(x=>x));
@@ -3388,12 +3539,12 @@ async function generarInformePDF(){
       if(prioridadesDestacadas.length){
         parrafo('Mayor prioridad:', 9.5);
         tabla(['Grado','Área','% Satisfactorio','Índice'],
-          prioridadesDestacadas.map(x=>[x.grado, x.area, pctf(x.ps), x.idxB.toFixed(2)]), [1,1.6,1,0.7]);
+          prioridadesDestacadas.map(x=>[x.grado, x.area, pctf(x.ps), idxTxt(x.idxB)]), [1,1.6,1,0.7]);
       }
       if(fortalezasDestacadas.length){
         parrafo('Mejor desempeño:', 9.5);
         tabla(['Grado','Área','% Satisfactorio','Índice'],
-          fortalezasDestacadas.map(x=>[x.grado, x.area, pctf(x.ps), x.idxB.toFixed(2)]), [1,1.6,1,0.7]);
+          fortalezasDestacadas.map(x=>[x.grado, x.area, pctf(x.ps), idxTxt(x.idxB)]), [1,1.6,1,0.7]);
       }
     }
 
@@ -3414,7 +3565,7 @@ async function generarInformePDF(){
 
     window.__PDF_SECCION_ACTUAL__ = 'Desempeño por grado y área';
     titulo('Desempeño por grado y área');
-    parrafo('El desempeño se presenta siempre desagregado por grado y área; no se incluye un número general que mezcle resultados de grados o áreas distintas entre sí. Cada combinación de grado y área tiene su propia tabla y su propia gráfica de tendencia, incluyendo el índice de priorización.', 9.5);
+    parrafo('El desempeño se presenta siempre desagregado por grado y área; no se incluye un número general que mezcle resultados de grados o áreas distintas entre sí. Cada combinación de grado y área tiene su propia tabla y su propia gráfica de tendencia, incluyendo el índice de brecha.', 9.5);
 
     if(gradosAreaPropios.length){
       gradosAreaPropios.forEach(g=>{
@@ -3424,7 +3575,7 @@ async function generarInformePDF(){
           let primeraFilaArea = true;
           a.porPeriodo.forEach(x=>{
             if(!x) return;
-            filasGA.push([primeraFilaArea?a.area:'', x.periodo, pctf(x.ps), pctf(x.pa), pctf(x.pe), x.idxB.toFixed(2)]);
+            filasGA.push([primeraFilaArea?a.area:'', x.periodo, pctf(x.ps), pctf(x.pa), pctf(x.pe), idxTxt(x.idxB)]);
             primeraFilaArea = false;
           });
         });
@@ -3436,7 +3587,7 @@ async function generarInformePDF(){
           subtituloPeriodo(`${g.grado} — ${a.area}`, altoEstimadoLineas(90));
           graficaLineas(conDatos.map(x=>x.periodo), [
             {nombre:'% Satisfactorio', valores:conDatos.map(x=>x.ps)},
-            {nombre:'Índice de priorización', valores:conDatos.map(x=>x.idxB)}
+            {nombre:'Índice de brecha', valores:conDatos.map(x=>x.idxB)}
           ], [hexARgb(C.S), hexARgb('#C8102E')], 90);
 
           if(amb.tipo==='centro'){
@@ -3582,23 +3733,26 @@ async function generarInformePDF(){
     if(atencionPeriodos.length){
       const labelAtencion = atencionPeriodos[0].datos.label;
       titulo(`Puntos de atención por ${labelAtencion.toLowerCase()}`);
-      parrafo(`Estos son los ${labelAtencion.toLowerCase()}s con mayor índice de priorización en cada periodo, es decir, los que requirieron atención más urgente según los datos de ese momento. El orden puede cambiar de un periodo a otro; todos los periodos se muestran en la misma tabla, agrupados por periodo.`, 9.5);
+      parrafo(`Estos son los ${labelAtencion.toLowerCase()}s con mayor índice de brecha en cada periodo, es decir, los que requirieron atención más urgente según los datos de ese momento. El orden puede cambiar de un periodo a otro; todos los periodos se muestran en la misma tabla, agrupados por periodo. Los que además quedaron dentro del ${Math.round(SIREV_IDX.pctLista*100)}% de mayor brecha de su propio periodo aparecen señalados como lista de intervención.`, 9.5);
       const filasAtencion = [];
       atencionPeriodos.forEach(({periodo, datos})=>{
-        datos.rows.forEach((r,i)=>filasAtencion.push([i===0?periodo:'', i+1, r.k, fmt(r.ev), r.idxB.toFixed(2), pctf(r.ps), r.estado]));
+        datos.rows.forEach((r,i)=>filasAtencion.push([i===0?periodo:'', i+1, r.k, fmt(r.ev), idxTxt(r.idxB), pctf(r.ps), r.estado + (r.enLista?' · lista de intervención':'')]));
       });
       tabla(['Periodo','#',labelAtencion,'Evaluados','Índice','% Satisfactorio','Estado'], filasAtencion, [0.9,0.35,2,0.8,0.7,1,1.3]);
     }
 
 
     titulo('Nota metodológica', 11);
-    parrafo('El índice de priorización combina el porcentaje de estudiantes en el nivel Elemental (60% del peso) con el complemento del porcentaje en el nivel Satisfactorio (40% del peso); valores más altos indican mayor necesidad de atención. Los ámbitos con menos de 30 estudiantes evaluados se señalan con una nota de cautela en el dashboard, por tratarse de una base de datos pequeña. Este informe siempre considera todos los periodos disponibles, sin importar el periodo que estuviera seleccionado en el dashboard al momento de generarlo, para que las comparaciones a lo largo del año sean posibles.', 9);
+    parrafo(`El índice de brecha mide qué tan lejos está un ámbito del nivel objetivo. Se calcula sumando el porcentaje de estudiantes en el nivel Elemental y el ${Math.round(SIREV_IDX.w*100)}% del porcentaje en el nivel Aceptable; el nivel Satisfactorio no suma, porque es la meta. La escala va de 0 a 100 y valores más altos indican mayor brecha: un ámbito donde todos los estudiantes alcanzan Satisfactorio obtiene 0, uno donde todos quedan en Aceptable obtiene ${Math.round(SIREV_IDX.w*100)}, y uno donde todos quedan en Elemental obtiene 100. El peso de ${(SIREV_IDX.w).toFixed(2)} asigna a la distancia entre Elemental y Aceptable el mismo valor que a la distancia entre Aceptable y Satisfactorio; es una decisión de diseño del sistema, no un parámetro estimado a partir de los datos.`, 9);
+    parrafo(`La lectura del índice se presenta de dos maneras, porque responden preguntas distintas. El estado (Avance favorable, Atención moderada o Prioridad alta) usa umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta} puntos: es una medida absoluta contra la escala, de modo que un mismo ámbito es comparable consigo mismo a lo largo del año y entre años distintos. La lista de intervención, en cambio, reúne al ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha dentro de cada periodo y solo entre los que tienen ${SIREV_IDX.baseMin} o más estudiantes evaluados: es un orden de atención con cupo, no una categoría, y por eso su umbral cambia de un periodo a otro. Esta separación es necesaria porque la distribución del sistema se desplaza de forma marcada a lo largo del año escolar: con un umbral fijo único, el primer corte del año dejaría a la mayoría de los centros en la banda más alta, lo que describe bien la situación pero no produce una lista de trabajo manejable.`, 9);
+    parrafo('Los ámbitos con menos de 30 estudiantes evaluados se señalan con una nota de cautela en el dashboard, y los que tienen menos de 10 con una nota de baja base, por tratarse de bases de datos pequeñas en las que el índice es inestable. Los ámbitos sin estudiantes evaluados se rotulan como Sin datos y no reciben índice. Este informe siempre considera todos los periodos disponibles, sin importar el periodo que estuviera seleccionado en el dashboard al momento de generarlo, para que las comparaciones a lo largo del año sean posibles.', 9);
 
     window.__PDF_SECCION_ACTUAL__ = 'Glosario';
     titulo('Glosario', 11);
     parrafo('Satisfactorio, Aceptable y Elemental: son los tres niveles en que se clasifica el desempeño de un estudiante en una prueba. Satisfactorio es el nivel esperado o superior; Elemental es el más bajo, e indica que el estudiante necesita apoyo adicional en esa área.', 9);
     parrafo('Niveles de lectura (N1 a N5): describen, de menor a mayor desarrollo, la forma en que un estudiante de primer ciclo se relaciona con la lectura. N1 (Lector de imágenes) y N2 (Lector de sílabas) son los más iniciales; N3 (Lector de palabras) y N4 (Lector no fluido) son intermedios; N5 (Lector fluido) es el nivel esperado para el grado.', 9);
-    parrafo('Índice de priorización: un número (entre 0 y 100) que resume qué tanta atención necesita un grupo de estudiantes. Se calcula combinando el porcentaje en Elemental con el complemento del porcentaje en Satisfactorio. Mientras más alto el número, mayor la necesidad de apoyo.', 9);
+    parrafo(`Índice de brecha: un número entre 0 y 100 que resume qué tan lejos está un grupo de estudiantes del nivel objetivo. Se calcula sumando el porcentaje en Elemental y el ${Math.round(SIREV_IDX.w*100)}% del porcentaje en Aceptable. Mientras más alto el número, mayor la brecha y mayor la necesidad de apoyo.`, 9);
+    parrafo(`Lista de intervención: el conjunto de centros con mayor brecha dentro de un mismo periodo, equivalente al ${Math.round(SIREV_IDX.pctLista*100)}% de los centros con base suficiente. Señala a quién atender primero en ese momento; no es una calificación del centro, y un centro puede mejorar y seguir apareciendo en la lista si los demás mejoraron más.`, 9);
     parrafo('Cobertura: el porcentaje de estudiantes matriculados que efectivamente fueron evaluados. Una cobertura baja significa que los resultados representan solo a una parte de los estudiantes del ámbito, y conviene interpretarlos con cautela.', 9);
 
     const fechaArchivo = new Date().toISOString().slice(0,10);
