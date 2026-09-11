@@ -2084,7 +2084,14 @@ function indiceEtiquetaFormula(){
 function breachIndex(pE,pS,pA,total){
   if(total!=null && !(Number(total)>0)) return null;
   const e = Number(pE)||0, s = Number(pS)||0;
-  const a = (pA==null || !Number.isFinite(Number(pA))) ? Math.max(0, 100-e-s) : (Number(pA)||0);
+  const derivado = (pA==null || !Number.isFinite(Number(pA)));
+  // Derivar %Aceptable como 100−%E−%S da por sentado que los tres porcentajes
+  // suman 100, y eso deja de ser cierto justo cuando no hay datos: con los tres
+  // en cero la derivación produce 100 de Aceptable y un índice de 50 salido de
+  // la nada. Es el mismo defecto que hacía que la v41 devolviera 40. Sin un
+  // total explícito que lo desmienta, ese caso se declara sin datos.
+  if(derivado && e+s===0) return null;
+  const a = derivado ? Math.max(0, 100-e-s) : (Number(pA)||0);
   if(total==null && !(e+a+s>0)) return null;
   // Se redondea a 2 decimales ANTES de clasificar, que es la precisión con la
   // que el índice se muestra en pantalla y se exporta. Sin esto, un centro que
