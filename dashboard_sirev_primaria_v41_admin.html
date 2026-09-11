@@ -58,9 +58,46 @@
 #brechas .status.none{background:#eef1f5;color:#5b6675;border:1px dashed #c4ccd6}
 /* v42: la lista de intervención es un turno de atención, no una categoría:
    se muestra como distintivo secundario debajo del estado, nunca en su lugar. */
-#brechas .status.intervencion{display:block;margin-top:5px;background:#1f3864;color:#fff;border:1px solid #16294a;font-weight:700;letter-spacing:.2px}
+#brechas .status.intervencion{display:inline-block;width:auto;max-width:none;margin-top:5px;background:#1f3864;color:#fff;border:1px solid #16294a;font-weight:700;letter-spacing:.2px}
 #brechas .rank-note{margin:0 12px 12px;padding:9px 11px;border-left:3px solid #0064ad;background:#f4f8fc;color:#33475e;font-size:11.5px;line-height:1.45;border-radius:0 5px 5px 0}
 #brechas .rank-note b{color:#123a5e}
+/* v42: barra de acceso a la lista de intervención */
+#brechas .lista-bar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 12px;margin:10px 12px 0;
+  background:#f4f8fc;border:1px solid #dbe6f0;border-radius:6px;
+}
+#brechas .lista-toggle{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:12.5px;font-weight:700;color:#1f3864;user-select:none;
+}
+#brechas .lista-toggle input{width:15px;height:15px;accent-color:#1f3864;cursor:pointer;margin:0}
+#brechas .lista-toggle input:disabled{cursor:not-allowed}
+#brechas .lista-toggle:has(input:disabled){opacity:.5;cursor:not-allowed}
+#brechas .lista-toggle input:focus-visible{outline:2px solid #0064ad;outline-offset:2px}
+#brechas .lista-count{
+  font-size:11.5px;color:#4a5c6e;font-variant-numeric:tabular-nums;
+  margin-right:auto;
+}
+#brechas .lista-dl{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#1f3864;color:#fff;border:none;border-radius:10px;
+  padding:7px 14px;font-size:12px;font-weight:850;
+  cursor:pointer;box-shadow:0 4px 10px rgba(31,56,100,.22);
+  transition:.15s;white-space:nowrap;
+}
+#brechas .lista-dl:hover:not(:disabled){filter:brightness(1.18);transform:translateY(-1px)}
+#brechas .lista-dl:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+#brechas .lista-dl:focus-visible{outline:2px solid #0064ad;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  #brechas .lista-dl,.export-xls-btn{transition:none}
+  #brechas .lista-dl:hover,.export-xls-btn:hover{transform:none}
+}
+/* v42: distintivo de lista en la tarjeta del índice */
+.indicator-card .status.intervencion{
+  display:block;margin-top:6px;background:#1f3864;color:#fff;
+  border:1px solid #16294a;font-weight:700;letter-spacing:.2px;
+}
 
 
 
@@ -1276,6 +1313,16 @@ button.pdf-btn:disabled{opacity:.65;cursor:wait}
   </div>
   <div class="section">
     <div class="section-header-row"><h2>Ranking por centro educativo</h2><button class="export-xls-btn" onclick="exportBrechasXls('tCentro','centro_educativo')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Exportar Excel</button></div>
+    <div class="lista-bar">
+      <label class="lista-toggle" for="chkSoloLista">
+        <input type="checkbox" id="chkSoloLista" onchange="setSoloLista(this.checked)">
+        <span>Ver solo lista de intervención</span>
+      </label>
+      <span class="lista-count" id="listaCount"></span>
+      <button class="lista-dl" id="btnListaXls" type="button" onclick="exportListaIntervencion()" title="Descarga la lista completa, esté o no activo el filtro de arriba">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Descargar lista
+      </button>
+    </div>
     <div class="body tablewrap"><table id="tCentro"></table></div>
     <div class="rank-note" id="tCentroNota"></div>
   </div>
@@ -1818,7 +1865,18 @@ function renderGeneralIndicators(){
       priorityHtml=`<div class="indicator-card priority-index"><small>Índice de brecha</small><div class="val">—</div><div class="det">Sin datos suficientes para calcular.</div></div>`;
     }else{
       const st=rankStatus(idx,cov.ev);
-      priorityHtml=`<div class="indicator-card priority-index ${st[0]}"><small>Índice de brecha</small><div class="val ${st[0]}">${idxTxt(idx)}</div><div class="det">${indiceEtiquetaFormula()} · más alto es mayor brecha</div><span class="status ${st[0]}">${st[1]}</span></div>`;
+      // Si el ámbito es un centro concreto, se resuelve su pertenencia a la
+      // lista contra el universo nacional del periodo, no contra sí mismo.
+      let chipLista='';
+      const fSel=current.f||filters();
+      if(fSel.centro){
+        const u=universoLista(fSel);
+        const fila=u.map && u.map.get(fSel.centro);
+        if(fila && fila.enLista){
+          chipLista=`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha del periodo (umbral ${u.cut!=null?u.cut.toFixed(2):'—'})">Intervención</span>`;
+        }
+      }
+      priorityHtml=`<div class="indicator-card priority-index ${st[0]}"><small>Índice de brecha</small><div class="val ${st[0]}">${idxTxt(idx)}</div><div class="det">${indiceEtiquetaFormula()} · más alto es mayor brecha</div><span class="status ${st[0]}">${st[1]}</span>${chipLista}</div>`;
     }
   }
 
@@ -2074,6 +2132,42 @@ function interventionCut(rows){
   const k = Math.max(1, Math.ceil(v.length * SIREV_IDX.pctLista));
   return v[Math.max(0, v.length - k)];
 }
+/* ── Acceso a la lista de intervención ──────────────────────────────────
+   Marcar los centros no basta: hay que poder recuperarlos. El interruptor
+   de la pestaña Brechas reduce la tabla a los centros marcados, y el
+   universo de comparación de la tarjeta de indicador se resuelve aquí. */
+let soloListaIntervencion = false;
+function setSoloLista(activo){
+  soloListaIntervencion = !!activo;
+  renderRanks();
+}
+/* Un centro filtrado individualmente no tiene con quién compararse: su
+   pertenencia a la lista se resuelve contra el universo completo de centros
+   del mismo periodo, conservando los filtros no territoriales (grado, área,
+   sector, tanda). El resultado se cachea porque recorrer PERF_BASE entero en
+   cada render sería costoso. */
+let _universoLista = {key:null, map:null, cut:null, enLista:0, total:0};
+function universoLista(f){
+  if(!f) return _universoLista;
+  const key = JSON.stringify([f.periods, f.sec, f.tipo, f.tanda, f.ciclo, f.g, f.area, f.comp, f.ind]);
+  if(_universoLista.key === key) return _universoLista;
+  try{
+    const fu = Object.assign({}, f, {reg:'', dist:'', centro:'', centroText:''});
+    const {perf, cov} = computeScopeRows(fu);
+    const rows = breachRowsFromData(perf, cov, 2, 'Centro educativo');
+    _universoLista = {
+      key,
+      map: new Map(rows.map(r=>[r.k, r])),
+      cut: rows.length ? rows[0].cut : null,
+      enLista: rows.filter(r=>r.enLista).length,
+      total: rows.length
+    };
+  }catch(e){
+    console.warn('[SIREV] No se pudo resolver el universo de la lista:', e.message);
+    _universoLista = {key, map:new Map(), cut:null, enLista:0, total:0};
+  }
+  return _universoLista;
+}
 function marcarIntervencion(rows){
   const cut = interventionCut(rows);
   for(const r of rows){
@@ -2092,13 +2186,35 @@ function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of
   // La lista de intervención es un orden de turno entre centros, no una categoría:
   // solo tiene sentido en la tabla de centros educativos, que es la unidad que se interviene.
   const cutLista = (idx===2) ? marcarIntervencion(arr) : null;
-  arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${idxTxt(r.idxB)}</td><td class="num breach-elemental">${pctf(r.pe)}</td><td class="num breach-aceptable">${pctf(r.pa)}</td><td class="num breach-satisfactorio">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span>${r.enLista?`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% con mayor brecha de los centros visibles con base suficiente">Lista de intervención</span>`:''}</td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No hay datos para los filtros seleccionados.</td></tr>`}</tbody>`;
+  // El corte se calcula SIEMPRE sobre el conjunto completo; el filtro solo
+  // afecta lo que se muestra, nunca quién entra a la lista.
+  const totalLista = (idx===2) ? arr.filter(r=>r.enLista).length : 0;
+  if(idx===2) actualizarControlesLista(cutLista, totalLista, arr.length);
+  if(idx===2 && soloListaIntervencion) arr = arr.filter(r=>r.enLista);
+  arr=sortRankRows(arr,id); document.getElementById(id).innerHTML=`<thead><tr>${rankHeader(id,0,label)}${rankHeader(id,1,'Evaluados')}${rankHeader(id,2,'Índice')}${rankHeader(id,3,'% Elemental')}${rankHeader(id,4,'% Aceptable')}${rankHeader(id,5,'% Satisfactorio')}${rankHeader(id,6,'Estado')}</tr></thead><tbody>${arr.length?arr.map((r,i)=>`<tr><td class="rank-name"><b>${i+1}.</b> <span>${r.k}</span></td><td class="num">${fmt(r.ev)}</td><td class="num">${idxTxt(r.idxB)}</td><td class="num breach-elemental">${pctf(r.pe)}</td><td class="num breach-aceptable">${pctf(r.pa)}</td><td class="num breach-satisfactorio">${pctf(r.ps)}</td><td class="num"><span class="status ${r.st[0]}">${r.st[1]}</span>${r.enLista?`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% con mayor brecha de los centros visibles con base suficiente">Intervención</span>`:''}</td></tr>`).join(''):`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">${(idx===2&&soloListaIntervencion)?(cutLista==null?'Hay muy pocos centros en esta vista para formar una lista de intervención.':'Ningún centro de esta vista entró a la lista de intervención.'):'No hay datos para los filtros seleccionados.'}</td></tr>`}</tbody>`;
   const notaEl=document.getElementById(id+'Nota');
   if(notaEl){
     notaEl.innerHTML = (idx===2 && cutLista!=null)
       ? `<b>Dos lecturas.</b> El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. La <b>lista de intervención</b> es relativa a esta vista: reúne al ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha (índice ≥ ${cutLista.toFixed(2)}) entre los que tienen ${SIREV_IDX.baseMin} o más evaluados. Un centro puede mejorar y seguir en la lista si los demás mejoraron más.`
       : `El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. Valores más altos indican mayor brecha.`;
   }}
+function actualizarControlesLista(cut, enLista, totalVisible){
+  const cont = document.getElementById('listaCount');
+  const chk  = document.getElementById('chkSoloLista');
+  const btn  = document.getElementById('btnListaXls');
+  const hayLista = cut!=null && enLista>0;
+  if(chk){
+    chk.disabled = !hayLista;
+    chk.checked  = hayLista && soloListaIntervencion;
+    if(!hayLista && soloListaIntervencion) soloListaIntervencion = false;
+  }
+  if(btn) btn.disabled = !hayLista;
+  if(cont){
+    cont.textContent = hayLista
+      ? `${fmt(enLista)} de ${fmt(totalVisible)} centros · índice ≥ ${cut.toFixed(2)}`
+      : (cut==null ? 'Se necesitan al menos ' + SIREV_IDX.minUnidades + ' centros con base suficiente' : 'Ningún centro en lista');
+  }
+}
 function renderRanks(){renderRankTable('tReg',0,'Regional');renderRankTable('tDist',1,'Distrito');renderRankTable('tCentro',2,'Centro educativo')}
 const matrixSortState={col:0,dir:'asc'};
 function matrixAgg(mode){const rows=mode==='perf'?current.perf:current.read, levels=mode==='perf'?['Elemental','Aceptable','Satisfactorio']:readOrder, idxL=mode==='perf'?12:9, idxV=mode==='perf'?13:10; let m={}; for(const r of rows){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; if(!path[0])continue; for(let depth=1;depth<=3;depth++){let k=path.slice(0,depth).join('|'); if(!m[k])m[k]={name:path[depth-1],depth,vals:Object.fromEntries(levels.map(l=>[l,0])),children:new Set()}; m[k].vals[idText(r[idxL])] += r[idxV]; if(depth>1)m[path.slice(0,depth-1).join('|')].children.add(k)}} let ev={}; for(const r of current.cov){let path=[idText(r[0]),idText(r[1]),idText(r[2])]; if(!path[0])continue; for(let d=1;d<=3;d++){let k=path.slice(0,d).join('|'); ev[k]=(ev[k]||0)+r[10]}} return {m,ev,levels};}
@@ -2278,6 +2394,33 @@ function xlsDownload(wb, filename){
   XLSX.writeFile(wb, filename);
 }
 
+/* Descarga la lista de intervención completa, con independencia de si el
+   interruptor de la tabla está activo o no. */
+async function exportListaIntervencion(){
+  await _ensureXLSX();
+  if(!window.XLSX){ alert('La librería de Excel (SheetJS) no se cargó.'); return; }
+  const rows = breachRows(2,'Centro educativo').filter(r=>r.enLista);
+  if(!rows.length){ alert('No hay centros en la lista de intervención para los filtros seleccionados.'); return; }
+  const cut = rows[0].cut;
+  const f = current.f || filters();
+  const periodos = getSelectedPeriods();
+  const headers = ['#','Centro educativo','Evaluados','Índice de brecha','Banda fija','% Elemental','% Aceptable','% Satisfactorio','Confiabilidad','Periodo(s)','Umbral del corte'];
+  const conf = ev => ev>=SIREV_IDX.cautelaAlta ? 'Suficiente' : (ev>=SIREV_IDX.cautelaBaja ? 'Cautela' : 'Baja base');
+  const data = rows.map((r,i)=>[
+    i+1, r.k, r.ev, Number(idxTxt(r.idxB)), r.estado,
+    Number(r.pe.toFixed(2)), Number(r.pa.toFixed(2)), Number(r.ps.toFixed(2)),
+    conf(r.ev), periodos.join(' | '), Number(cut.toFixed(2))
+  ]);
+  const nota = [[`Lista de intervención: los centros con mayor brecha de esta vista, equivalentes al ${Math.round(SIREV_IDX.pctLista*100)}% de los que tienen ${SIREV_IDX.baseMin} o más evaluados. El umbral es relativo al periodo y no es una categoría del centro.`]];
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...data, [], ...nota]);
+  ws['!cols'] = headers.map((h,i)=>({wch: i===0?5 : i===1?44 : 16}));
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let C=range.s.c; C<=range.e.c; C++){ const c=ws[XLSX.utils.encode_cell({r:0,c:C})]; if(c) c.s={font:{bold:true}}; }
+  const reg = f.reg ? f.reg.replace(/[\/\\?*\[\]:]/g,'') : 'todas';
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Lista de intervención'.substring(0,31));
+  xlsDownload(wb, `sirev_lista_intervencion_${periodos.join('-')||'todos'}_${reg}.xlsx`);
+}
 async function exportBrechasXls(tableId, scope){
   await _ensureXLSX();
   if(!window.XLSX){ alert('La librería de Excel (SheetJS) no se cargó.'); return; }
@@ -3739,6 +3882,36 @@ async function generarInformePDF(){
         datos.rows.forEach((r,i)=>filasAtencion.push([i===0?periodo:'', i+1, r.k, fmt(r.ev), idxTxt(r.idxB), pctf(r.ps), r.estado + (r.enLista?' · lista de intervención':'')]));
       });
       tabla(['Periodo','#',labelAtencion,'Evaluados','Índice','% Satisfactorio','Estado'], filasAtencion, [0.9,0.35,2,0.8,0.7,1,1.3]);
+    }
+
+    /* v42: la lista de intervención, siempre a nivel de centro educativo.
+       puntosAtencion() cambia de unidad según el nivel del informe —regionales
+       en el nacional, distritos en el regional—, así que sin esta sección la
+       lista solo era visible en informes distritales. */
+    window.__PDF_SECCION_ACTUAL__ = 'Lista de intervención';
+    const LIMITE_LISTA_PDF = 12;
+    const listaPeriodos = periodosDisponibles.map(p=>{
+      const rows = breachRowsFromData(
+        perfX.filter(r=>idText(r[6])===p),
+        covX.filter(r=>idText(r[6])===p),
+        2, 'Centro educativo'
+      ).filter(r=>r.enLista);
+      return {periodo:p, rows, cut: rows.length ? rows[0].cut : null};
+    }).filter(x=>x.rows.length);
+
+    if(listaPeriodos.length){
+      titulo('Lista de intervención por centro educativo');
+      const umbrales = listaPeriodos.map(x=>`${x.periodo} ${idxTxt(x.cut)}`).join(', ');
+      parrafo(`La lista reúne, dentro de cada periodo, al ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha entre los que tienen ${SIREV_IDX.baseMin} o más estudiantes evaluados. Su umbral se recalcula en cada periodo, porque lo que se mantiene fijo es el tamaño de la lista y no el punto de corte: ${umbrales}. Es un orden de atención, no una categoría del centro, y por eso un centro puede mejorar y seguir apareciendo si los demás mejoraron más. La tabla muestra los ${LIMITE_LISTA_PDF} centros con mayor brecha de cada periodo; el total de cada lista se indica al pie de su bloque.`, 9.5);
+      const filasLista = [];
+      listaPeriodos.forEach(({periodo, rows})=>{
+        rows.slice(0, LIMITE_LISTA_PDF).forEach((r,i)=>
+          filasLista.push([i===0?periodo:'', i+1, r.k, fmt(r.ev), idxTxt(r.idxB), r.estado]));
+        filasLista.push(['', '', rows.length>LIMITE_LISTA_PDF
+          ? `Lista completa de ${periodo}: ${fmt(rows.length)} centros (${fmt(rows.length-LIMITE_LISTA_PDF)} no mostrados)`
+          : `Lista completa de ${periodo}: ${fmt(rows.length)} centros`, '', '', '']);
+      });
+      tabla(['Periodo','#','Centro educativo','Evaluados','Índice','Estado'], filasLista, [0.9,0.35,2.2,0.8,0.7,1.3]);
     }
 
 
