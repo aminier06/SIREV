@@ -1873,7 +1873,7 @@ function renderGeneralIndicators(){
         const u=universoLista(fSel);
         const fila=u.map && u.map.get(fSel.centro);
         if(fila && fila.enLista){
-          chipLista=`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha del periodo (umbral ${u.cut!=null?u.cut.toFixed(2):'—'})">Intervención</span>`;
+          chipLista=`<span class="status intervencion" title="Entre el ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha de ${u.ambito} en este periodo (umbral ${u.cut!=null?u.cut.toFixed(2):'—'}, sobre ${fmt(u.total)} centros)">Intervención</span>`;
         }
       }
       priorityHtml=`<div class="indicator-card priority-index ${st[0]}"><small>Índice de brecha</small><div class="val ${st[0]}">${idxTxt(idx)}</div><div class="det">${indiceEtiquetaFormula()} · más alto es mayor brecha</div><span class="status ${st[0]}">${st[1]}</span>${chipLista}</div>`;
@@ -2148,18 +2148,31 @@ function setSoloLista(activo){
   soloListaIntervencion = !!activo;
   renderRanks();
 }
-/* Un centro filtrado individualmente no tiene con quién compararse: su
-   pertenencia a la lista se resuelve contra el universo completo de centros
-   del mismo periodo, conservando los filtros no territoriales (grado, área,
-   sector, tanda). El resultado se cachea porque recorrer PERF_BASE entero en
-   cada render sería costoso. */
-let _universoLista = {key:null, map:null, cut:null, enLista:0, total:0};
+/* Un centro filtrado individualmente no tiene con quién compararse. Su
+   pertenencia se resuelve contra LA MISMA DEMARCACIÓN que gobierna la tabla:
+   se quita únicamente el filtro de centro y se conservan regional y distrito,
+   además de los filtros no territoriales. Así la tarjeta y la tabla responden
+   siempre lo mismo para un centro dado.
+
+   Como al elegir un centro el buscador sincroniza su regional y su distrito,
+   el universo efectivo suele ser el distrito del centro: un director ve si su
+   centro está en el peor 20% de su distrito. Sin filtros territoriales, el
+   universo es el país.
+
+   El resultado se cachea porque recorrer PERF_BASE entero en cada render
+   sería costoso. */
+let _universoLista = {key:null, map:null, cut:null, enLista:0, total:0, ambito:''};
+function ambitoLista(f){
+  if(f && f.dist) return 'el distrito ' + f.dist;
+  if(f && f.reg)  return 'la regional ' + f.reg;
+  return 'el país';
+}
 function universoLista(f){
   if(!f) return _universoLista;
-  const key = JSON.stringify([f.periods, f.sec, f.tipo, f.tanda, f.ciclo, f.g, f.area, f.comp, f.ind]);
+  const key = JSON.stringify([f.periods, f.reg, f.dist, f.sec, f.tipo, f.tanda, f.ciclo, f.g, f.area, f.comp, f.ind]);
   if(_universoLista.key === key) return _universoLista;
   try{
-    const fu = Object.assign({}, f, {reg:'', dist:'', centro:'', centroText:''});
+    const fu = Object.assign({}, f, {centro:'', centroText:''});
     const {perf, cov} = computeScopeRows(fu);
     const rows = breachRowsFromData(perf, cov, 2, 'Centro educativo');
     _universoLista = {
@@ -2167,11 +2180,12 @@ function universoLista(f){
       map: new Map(rows.map(r=>[r.k, r])),
       cut: rows.length ? rows[0].cut : null,
       enLista: rows.filter(r=>r.enLista).length,
-      total: rows.length
+      total: rows.length,
+      ambito: ambitoLista(f)
     };
   }catch(e){
     console.warn('[SIREV] No se pudo resolver el universo de la lista:', e.message);
-    _universoLista = {key, map:new Map(), cut:null, enLista:0, total:0};
+    _universoLista = {key, map:new Map(), cut:null, enLista:0, total:0, ambito:ambitoLista(f)};
   }
   return _universoLista;
 }
@@ -2202,7 +2216,7 @@ function renderRankTable(id,idx,label){let perfMap={}, covMap={}; for(const r of
   const notaEl=document.getElementById(id+'Nota');
   if(notaEl){
     notaEl.innerHTML = (idx===2 && cutLista!=null)
-      ? `<b>Dos lecturas.</b> El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. La <b>lista de intervención</b> es relativa a esta vista: reúne al ${Math.round(SIREV_IDX.pctLista*100)}% de centros con mayor brecha (índice ≥ ${cutLista.toFixed(2)}) entre los que tienen ${SIREV_IDX.baseMin} o más evaluados. Un centro puede mejorar y seguir en la lista si los demás mejoraron más.`
+      ? `<b>Dos lecturas.</b> El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. La <b>lista de intervención</b> es relativa a ${ambitoLista(current.f||filters())}: reúne al ${Math.round(SIREV_IDX.pctLista*100)}% de sus centros con mayor brecha (índice ≥ ${cutLista.toFixed(2)}) entre los que tienen ${SIREV_IDX.baseMin} o más evaluados. Si cambias el filtro territorial, el umbral se recalcula sobre la nueva demarcación. Un centro puede mejorar y seguir en la lista si los demás mejoraron más.`
       : `El <b>estado</b> es absoluto y comparable entre cortes: ${indiceEtiquetaFormula()}, con umbrales fijos en ${SIREV_IDX.bandaBaja} y ${SIREV_IDX.bandaAlta}. Valores más altos indican mayor brecha.`;
   }}
 function actualizarControlesLista(cut, enLista, totalVisible){
